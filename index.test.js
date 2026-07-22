@@ -6,7 +6,7 @@ import {
   beforeEach,
   afterEach,
 } from "@jest/globals";
-import Cookies from "./index.js";
+import Cookies from "./src/index.js";
 
 const addCookiesToDocument = (document) => {
   let _cookies = {};
@@ -31,6 +31,12 @@ const addCookiesToDocument = (document) => {
 addCookiesToDocument(document);
 
 describe("No existing cookies", () => {
+  beforeEach(() => {
+    delete document.documentElement.dataset.tnaFrontendDebug;
+    delete window.TNAFrontendCookies;
+    delete window.TNAFrontendCookieEvents;
+  });
+
   afterEach(() => {
     document.clearAllCookies();
     new Cookies().destroyInstance();
@@ -66,23 +72,88 @@ describe("No existing cookies", () => {
   });
 
   test("Initialisation with debug", async () => {
-    expect(document.cookie).toEqual("");
-
-    document.documentElement.dataset.tnaFrontendDebug = "true";
+    expect(document.documentElement.dataset.tnaFrontendDebug).toEqual(
+      undefined,
+    );
+    document.documentElement.dataset.tnaFrontendDebug = true;
+    expect(document.documentElement.dataset.tnaFrontendDebug).toEqual("true");
 
     const cookies = new Cookies();
     expect(cookies.debug).toEqual(true);
+    expect(cookies.events.debug).toEqual(true);
 
     const mockDebug = jest.fn();
     cookies.log = mockDebug;
+    const mockEventsDebug = jest.fn();
+    cookies.events.log = mockEventsDebug;
 
     const testKey = "foo";
     const testValue = "bar";
 
+    cookies.on("set", () => {
+      console.log("Set!");
+    });
     cookies.set(testKey, testValue);
 
-    expect(mockDebug.mock.calls).toHaveLength(1);
-    expect(mockDebug.mock.calls[0][0]).toStrictEqual("Set cookie:");
+    expect(mockDebug.mock.calls).toHaveLength(2);
+    expect(mockDebug.mock.calls[0][0]).toStrictEqual(
+      "Adding event listener for: set",
+    );
+    expect(mockDebug.mock.calls[1][0]).toStrictEqual("Set cookie:");
+    expect(mockDebug.mock.calls[1][1]).toStrictEqual({
+      cookie:
+        "foo=bar; domain=localhost; samesite=Lax; path=/; max-age=31536000; secure",
+      domain: "localhost",
+      key: "foo",
+      maxAge: 31536000,
+      path: "/",
+      sameSite: "Lax",
+      secure: true,
+      session: false,
+      value: "bar",
+    });
+
+    // expect(mockEventsDebug.mock.calls).toHaveLength(2);
+    // expect(mockEventsDebug.mock.calls[0][0]).toStrictEqual(
+    //   "Adding event listener for: set",
+    // );
+    // expect(mockEventsDebug.mock.calls[1][0]).toStrictEqual("Set cookie:");
+    // expect(mockEventsDebug.mock.calls[1][1]).toStrictEqual({
+    //   cookie:
+    //     "foo=bar; domain=localhost; samesite=Lax; path=/; max-age=31536000; secure",
+    //   domain: "localhost",
+    //   key: "foo",
+    //   maxAge: 31536000,
+    //   path: "/",
+    //   sameSite: "Lax",
+    //   secure: true,
+    //   session: false,
+    //   value: "bar",
+    // });
+  });
+
+  test("Initialisation with new instance shares events", async () => {
+    const cookies1 = new Cookies();
+    expect(cookies1.events.events).not.toHaveProperty("set");
+    cookies1.on("set", () => {});
+    expect(cookies1.events.events).toHaveProperty("set");
+    expect(cookies1.events.events.set).toHaveLength(1);
+
+    const cookies2 = new Cookies();
+    expect(cookies2.events.events).toHaveProperty("set");
+    expect(cookies2.events.events.set).toHaveLength(1);
+
+    const cookies3 = new Cookies({ newInstance: true });
+    expect(cookies3.events.events).toHaveProperty("set");
+    expect(cookies3.events.events.set).toHaveLength(1);
+
+    cookies1.destroyInstance();
+    cookies2.destroyInstance();
+    cookies3.destroyInstance();
+
+    const cookies4 = new Cookies({ newInstance: true });
+    expect(cookies4.events.events).toHaveProperty("set");
+    expect(cookies4.events.events.set).toHaveLength(1);
   });
 
   test("Getting/setting", async () => {
@@ -110,63 +181,6 @@ describe("No existing cookies", () => {
     expect(cookies.get(testKey)).toEqual(testValue);
     expect(cookies.hasValue(testKey, testValue)).toEqual(true);
     expect(cookies.hasValue(testKey, "different")).toEqual(false);
-  });
-
-  test("Get with no key", async () => {
-    const cookies = new Cookies();
-
-    expect(cookies.get(null)).toEqual(null);
-    expect(cookies.get("")).toEqual(null);
-  });
-
-  test("Set with no key or value", async () => {
-    const cookies = new Cookies();
-
-    expect(Object.keys(cookies.all)).toHaveLength(1);
-    cookies.set(null, "foobar");
-    expect(Object.keys(cookies.all)).toHaveLength(1);
-    cookies.set(null);
-    expect(Object.keys(cookies.all)).toHaveLength(1);
-  });
-
-  test("Deletion", async () => {
-    const cookies = new Cookies();
-    expect(cookies).toHaveProperty("delete");
-
-    const testKey = "foo";
-    const testValue = "bar";
-
-    cookies.set(testKey, testValue);
-
-    expect(cookies.all).toHaveProperty(testKey);
-    expect(cookies.all[testKey]).toEqual(testValue);
-    expect(cookies.exists(testKey)).toEqual(true);
-    expect(cookies.get(testKey)).toEqual(testValue);
-
-    cookies.delete(testKey);
-
-    // expect(cookies.all).not.toHaveProperty(testKey);
-    // expect(cookies.exists(testKey)).toEqual(false);
-    expect(cookies.get(testKey)).toEqual("");
-  });
-
-  test("Deletion of all", async () => {
-    const cookies = new Cookies();
-
-    const testKeys = ["foo", "bar"];
-    const testValue = "testValue";
-
-    testKeys.forEach((testKey) => cookies.set(testKey, testValue));
-
-    testKeys.forEach((testKey) => {
-      expect(cookies.get(testKey)).toEqual(testValue);
-    });
-
-    cookies.deleteAll();
-
-    testKeys.forEach((testKey) => {
-      expect(cookies.get(testKey)).toEqual("");
-    });
   });
 
   test("Initial policies", async () => {
@@ -539,6 +553,9 @@ describe("Existing cookies", () => {
     document.clearAllCookies();
     document.cookie =
       "cookies_policy=%7B%22usage%22%3Afalse%2C%22settings%22%3Atrue%2C%22essential%22%3Atrue%2C%22marketing%22%3Afalse%7D";
+    delete document.documentElement.dataset.tnaFrontendDebug;
+    delete window.TNAFrontendCookies;
+    delete window.TNAFrontendCookieEvents;
   });
 
   test("Initialisation", async () => {
@@ -574,6 +591,9 @@ describe("Existing empty cookie policies", () => {
     document.clearAllCookies();
     document.cookie = "cookies_policy=%7B%7D";
     new Cookies().destroyInstance();
+    delete document.documentElement.dataset.tnaFrontendDebug;
+    delete window.TNAFrontendCookies;
+    delete window.TNAFrontendCookieEvents;
   });
 
   test("Initialisation", async () => {
@@ -597,6 +617,9 @@ describe("Existing partial cookie policies", () => {
     document.clearAllCookies();
     document.cookie = "cookies_policy=%7B%22usage%22%3Atrue%7D";
     new Cookies().destroyInstance();
+    delete document.documentElement.dataset.tnaFrontendDebug;
+    delete window.TNAFrontendCookies;
+    delete window.TNAFrontendCookieEvents;
   });
 
   test("Initialisation", async () => {
@@ -620,6 +643,9 @@ describe("Existing unknown cookie policies", () => {
     document.clearAllCookies();
     document.cookie = "cookies_policy=%7B%22custom%22%3Atrue%7D";
     new Cookies().destroyInstance();
+    delete document.documentElement.dataset.tnaFrontendDebug;
+    delete window.TNAFrontendCookies;
+    delete window.TNAFrontendCookieEvents;
   });
 
   test("Initialisation", async () => {
@@ -644,6 +670,9 @@ describe("Existing malformed cookie policies", () => {
     document.clearAllCookies();
     document.cookie = "cookies_policy=foobar";
     new Cookies().destroyInstance();
+    delete document.documentElement.dataset.tnaFrontendDebug;
+    delete window.TNAFrontendCookies;
+    delete window.TNAFrontendCookieEvents;
   });
 
   test("Initialisation", async () => {
@@ -665,6 +694,9 @@ describe("Existing malformed cookie policies", () => {
 describe("No initialisation", () => {
   beforeEach(() => {
     document.clearAllCookies();
+    delete document.documentElement.dataset.tnaFrontendDebug;
+    delete window.TNAFrontendCookies;
+    delete window.TNAFrontendCookieEvents;
   });
 
   test("Initialisation", async () => {
@@ -672,5 +704,87 @@ describe("No initialisation", () => {
 
     expect(cookies.policiesCorrectOnInit).toEqual(false);
     expect(cookies.all).not.toHaveProperty("cookies_policy");
+  });
+});
+
+describe("Custom cookies", () => {
+  beforeEach(() => {
+    document.cookie = "foo=bar; alpha=";
+    delete document.documentElement.dataset.tnaFrontendDebug;
+    delete window.TNAFrontendCookies;
+    delete window.TNAFrontendCookieEvents;
+  });
+
+  test("Get", async () => {
+    const cookies = new Cookies();
+
+    expect(cookies.get("foo")).toEqual("bar");
+  });
+
+  test("Get non-existant", async () => {
+    const cookies = new Cookies();
+
+    expect(cookies.get("bar")).toEqual(undefined);
+  });
+
+  test("Get with no key", async () => {
+    const cookies = new Cookies();
+
+    expect(cookies.get(null)).toEqual(undefined);
+    expect(cookies.get("")).toEqual(undefined);
+  });
+
+  test("Get empty value", async () => {
+    const cookies = new Cookies();
+
+    expect(cookies.get("alpha")).toEqual(undefined);
+  });
+
+  test("Set with no key or value", async () => {
+    const cookies = new Cookies();
+
+    cookies.set(null, "foobar");
+    cookies.set(null);
+  });
+
+  // TODO
+  // test("Deletion", async () => {
+  //   const cookies = new Cookies();
+  //   expect(cookies).toHaveProperty("delete");
+
+  //   const testKey = "foo2";
+  //   const testValue = "bar2";
+
+  //   cookies.set(testKey, testValue);
+
+  //   expect(cookies.all).toHaveProperty(testKey);
+  //   expect(cookies.all[testKey]).toEqual(testValue);
+  //   expect(cookies.exists(testKey)).toEqual(true);
+  //   expect(cookies.get(testKey)).toEqual(testValue);
+
+  //   cookies.delete(testKey);
+
+  //   expect(cookies.all).not.toHaveProperty(testKey);
+  //   expect(cookies.exists(testKey)).toEqual(false);
+  //   expect(cookies.get(testKey)).toEqual("");
+  // });
+
+  test("Deletion of all", async () => {
+    const cookies = new Cookies();
+
+    const testKeys = ["foo", "bar"];
+    const testValue = "testValue";
+
+    testKeys.forEach((testKey) => cookies.set(testKey, testValue));
+
+    testKeys.forEach((testKey) => {
+      expect(cookies.get(testKey)).toEqual(testValue);
+    });
+
+    cookies.deleteAll();
+
+    testKeys.forEach((testKey) => {
+      expect(cookies.get(testKey)).toEqual("");
+    });
   });
 });

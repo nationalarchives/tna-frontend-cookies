@@ -1,3 +1,7 @@
+/* eslint-disable max-lines */
+
+import CookieEventHandler from "./events";
+
 window.TNAFrontendCookies ||= null;
 
 const tnaCookiePolicies = ["usage", "settings", "marketing", "essential"];
@@ -24,7 +28,7 @@ export default class Cookies {
   /** @protected */
   policiesCorrectOnInit = false;
   /** @protected */
-  debug = document.documentElement.dataset.tnaFrontendDebug === "true";
+  debug = false;
 
   /**
    * Create a cookie handler.
@@ -36,6 +40,7 @@ export default class Cookies {
    * @param {String} [options.newInstance=false] - Create a fresh instance of the cookie class.
    * @param {Boolean} [options.noInit=false] - Don't initialise a blank cookie policy.
    */
+  /* eslint-disable-next-line max-lines-per-function, max-statements, complexity */
   constructor(options = {}) {
     const {
       defaultDomain,
@@ -50,40 +55,29 @@ export default class Cookies {
       /* eslint-disable-next-line no-constructor-return */
       return window.TNAFrontendCookies;
     }
-    if (defaultDomain) {
-      this.defaultDomain = defaultDomain;
-    } else {
-      this.defaultDomain =
-        document.documentElement.dataset.tnaCookiesDomain ||
+    this.defaultDomain = defaultDomain
+      ? defaultDomain
+      : document.documentElement.dataset.tnaCookiesDomain ||
         window.location.hostname;
-    }
-    if (defaultPath) {
-      this.defaultPath = defaultPath;
-    } else {
-      this.defaultPath = document.documentElement.dataset.tnaCookiesPath || "/";
-    }
-    if (secure) {
-      this.secure = secure;
-    } else {
-      this.secure =
-        document.documentElement.dataset.tnaCookiesInsecure !== "true";
-    }
-    if (policiesKey) {
-      this.policiesKey = policiesKey;
-    } else {
-      this.policiesKey =
-        document.documentElement.dataset.tnaCookiesPoliciesKey ||
+    this.defaultPath = defaultPath
+      ? defaultPath
+      : document.documentElement.dataset.tnaCookiesPath || "/";
+    this.secure = secure
+      ? secure
+      : document.documentElement.dataset.tnaCookiesInsecure !== "true";
+    this.policiesKey = policiesKey
+      ? policiesKey
+      : document.documentElement.dataset.tnaCookiesPoliciesKey ||
         "cookies_policy";
-    }
-    if (defaultAge) {
-      this.defaultAge = defaultAge;
-    } else {
-      /* eslint-disable-next-line no-magic-numbers */
-      const secondsInAYear = 365 * 24 * 60 * 60;
-      this.defaultAge =
-        parseInt(document.documentElement.dataset.tnaCookiesDefaultAge, 10) ||
-        secondsInAYear;
-    }
+    this.defaultAge = defaultAge
+      ? defaultAge
+      : parseInt(document.documentElement.dataset.tnaCookiesDefaultAge, 10) ||
+        /* eslint-disable-next-line no-magic-numbers */
+        365 * 24 * 60 * 60;
+    this.debug =
+      (document.documentElement.dataset.tnaFrontendDebug || "false")
+        ?.toString()
+        .toLowerCase() === "true";
     this.events = new CookieEventHandler(this.debug);
     this.policiesCorrectOnInit =
       Object.keys(this.policies).length === tnaCookiePolicies.length &&
@@ -131,6 +125,7 @@ export default class Cookies {
 
   log(...args) {
     if (this.debug) {
+      /* eslint-disable-next-line no-console */
       console.log("[TNA Frontend Cookies]", ...args, this.all);
     }
   }
@@ -195,7 +190,7 @@ export default class Cookies {
     if (this.exists(key)) {
       return decodeURIComponent(this.all[key]);
     }
-    return null;
+    return undefined;
   }
 
   /**
@@ -223,14 +218,8 @@ export default class Cookies {
     if (!key) {
       return;
     }
-    let secureString = "";
-    if (secure) {
-      secureString = "; secure";
-    }
-    let sessionString = "";
-    if (!session) {
-      sessionString = `; max-age=${maxAge}`;
-    }
+    const secureString = secure ? "; secure" : "";
+    const sessionString = session ? "" : `; max-age=${maxAge}`;
     const cookie = `${encodeURIComponent(key)}=${encodeURIComponent(value)}; domain=${domain}; samesite=${sameSite}; path=${path}${sessionString}${secureString}`;
     document.cookie = cookie;
     this.log("Set cookie:", {
@@ -398,80 +387,5 @@ export default class Cookies {
   once(event, callback) {
     this.log(`Adding one-time event listener for: ${event}`);
     this.events.once(event, callback);
-  }
-}
-
-/**
- * Class to handle cookies.
- * @class CookieEventHandler
- * @constructor
- * @public
- */
-export class CookieEventHandler {
-  events = {};
-  oneTimeEvents = {};
-  debug = false;
-
-  constructor(debug = false) {
-    this.debug = debug;
-    if (window.TNAFrontendCookieEvents) {
-      this.log("Using existing TNAFrontendCookieEvents instance");
-      /* eslint-disable-next-line no-constructor-return */
-      return window.TNAFrontendCookieEvents;
-    }
-    window.TNAFrontendCookieEvents = this;
-  }
-
-  log(...args) {
-    if (this.debug) {
-      /* eslint-disable-next-line no-console */
-      console.log("[TNA Frontend Cookie Events]", ...args);
-    }
-  }
-
-  /**
-   * Add an event listener.
-   * @param {String} event - The event to add a listener for.
-   * @param {Function} callback - The callback function to call when the event is triggered.
-   */
-  on(event, callback) {
-    if (!Object.hasOwn(this.events, event)) {
-      this.events[event] = [];
-    }
-    this.events[event] = [...this.events[event], callback];
-  }
-
-  once(event, callback) {
-    if (!Object.hasOwn(this.oneTimeEvents, event)) {
-      this.oneTimeEvents[event] = [];
-    }
-    this.oneTimeEvents[event] = [...this.oneTimeEvents[event], callback];
-  }
-
-  /** @protected */
-  trigger(event, data = {}) {
-    if (Object.hasOwn(this.events, event)) {
-      this.log(`Triggering event: ${event}`, data);
-      this.events[event].forEach((eventToTrigger) =>
-        eventToTrigger.call(this, data),
-      );
-    }
-    if (Object.hasOwn(this.oneTimeEvents, event)) {
-      this.log(`Triggering one-time event: ${event}`, data);
-
-      for (
-        /* eslint-disable-next-line no-magic-numbers */
-        let eventIndex = this.oneTimeEvents[event].length - 1;
-        /* eslint-disable-next-line no-magic-numbers */
-        eventIndex >= 0;
-        /* eslint-disable-next-line no-magic-numbers */
-        eventIndex -= 1
-      ) {
-        const eventToTrigger = this.oneTimeEvents[event][eventIndex];
-        eventToTrigger.call(this, data);
-        /* eslint-disable-next-line no-magic-numbers */
-        this.oneTimeEvents[event].splice(eventIndex, 1);
-      }
-    }
   }
 }

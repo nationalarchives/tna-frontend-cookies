@@ -6,7 +6,8 @@
     "lint": "eslint",
     "prettier": "prettier --write .",
     "prettier:check": "prettier --check .",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --verbose --coverage --runInBand"
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --verbose --coverage --runInBand",
+    "test:dev": "node --experimental-vm-modules node_modules/jest/bin/jest.js --verbose --coverage --runInBand --watch"
   },
   "repository": {
     "type": "git",
@@ -21,7 +22,7 @@
   "bugs": {
     "url": "https://github.com/nationalarchives/tna-frontend-cookies/issues"
   },
-  "main": "index.js",
+  "main": "src/index.js",
   "homepage": "https://github.com/nationalarchives/tna-frontend-cookies#readme",
   "type": "module",
   "devDependencies": {
