@@ -1,0 +1,41 @@
+{
+  "name": "@nationalarchives/frontend-cookies",
+  "version": "0.1.0",
+  "description": "A reusable cookie library for The National Archives",
+  "scripts": {
+    "lint": "eslint",
+    "prettier": "prettier --write .",
+    "prettier:check": "prettier --check .",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --verbose --coverage --runInBand"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nationalarchives/tna-frontend-cookies.git"
+  },
+  "author": {
+    "name": "Andrew Hosgood",
+    "email": "andrew.hosgood@nationalarchives.gov.uk",
+    "url": "https://andrewhosgood.dev"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/nationalarchives/tna-frontend-cookies/issues"
+  },
+  "main": "index.js",
+  "homepage": "https://github.com/nationalarchives/tna-frontend-cookies#readme",
+  "type": "module",
+  "devDependencies": {
+    "@nationalarchives/eslint-config": "^0.1.8",
+    "babel-jest": "^30.4.1",
+    "jest": "^30.4.2",
+    "jest-environment-jsdom": "^30.4.1",
+    "prettier": "^3.9.6"
+  },
+  "jest": {
+    "modulePathIgnorePatterns": [
+      "/package/"
+    ],
+    "testEnvironment": "jsdom",
+    "transform": {}
+  }
+}
