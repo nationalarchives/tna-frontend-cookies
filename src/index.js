@@ -190,6 +190,7 @@ export default class Cookies {
     if (this.exists(key)) {
       return decodeURIComponent(this.all[key]);
     }
+    /* eslint-disable-next-line no-undefined */
     return undefined;
   }
 
