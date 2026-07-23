@@ -326,8 +326,8 @@ describe("Events", () => {
     cookies.rejectAllPolicies();
     cookies.deleteAll();
 
-    expect(mockSetCookieCallback.mock.calls).toHaveLength(9);
-    expect(mockDeleteCookieCallback.mock.calls).toHaveLength(3);
+    expect(mockSetCookieCallback.mock.calls).toHaveLength(8);
+    expect(mockDeleteCookieCallback.mock.calls).toHaveLength(2);
     expect(mockDeleteAllCookiesCallback.mock.calls).toHaveLength(1);
     expect(mockAcceptPolicyCallback.mock.calls).toHaveLength(1);
     expect(mockRejectPolicyCallback.mock.calls).toHaveLength(1);
@@ -359,19 +359,32 @@ describe("Events", () => {
 describe("Initialisation", () => {
   test("With custom properties", async () => {
     const cookies = new Cookies({
-      defaultDomain: "example.com",
-      defaultPath: "/custom",
+      defaultDomain: ".localhost",
       secure: true,
       policiesKey: "cookies_policy_custom",
       defaultAge: 300,
     });
-    expect(cookies.defaultDomain).toEqual("example.com");
-    expect(cookies.defaultPath).toEqual("/custom");
+    expect(cookies.defaultDomain).toEqual(".localhost");
     expect(cookies.secure).toEqual(true);
     expect(cookies.policiesKey).toEqual("cookies_policy_custom");
     expect(cookies.defaultAge).toEqual(300);
 
     expect(document.cookie).not.toEqual("");
+
+    expect(cookies.exists("cookies_policy_custom")).toEqual(true);
+    cookies.acceptAllPolicies();
+    expect(cookies.isPolicyAccepted("settings")).toEqual(true);
+    expect(cookies.isPolicyAccepted("usage")).toEqual(true);
+    expect(cookies.isPolicyAccepted("marketing")).toEqual(true);
+  });
+
+  test("With a different path", async () => {
+    const cookies = new Cookies({
+      defaultPath: "/custom",
+    });
+    expect(cookies.defaultPath).toEqual("/custom");
+
+    expect(document.cookie).toEqual("");
   });
 
   test("With debug", async () => {
