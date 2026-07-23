@@ -132,6 +132,7 @@ export default class Cookies {
 
   destroyInstance() {
     this.log("Destroying TNAFrontendCookies instance");
+    this.events.destroyInstance();
     window.TNAFrontendCookies = null;
   }
 

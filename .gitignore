@@ -1,6 +1,8 @@
 .DS_Store
 .idea/
+.vitest-attachments/
 .vscode/
+__screenshots__/
 coverage/
 node_modules
 package

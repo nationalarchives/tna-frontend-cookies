@@ -6,8 +6,8 @@
     "lint": "eslint",
     "prettier": "prettier --write .",
     "prettier:check": "prettier --check .",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --verbose --coverage --runInBand",
-    "test:dev": "node --experimental-vm-modules node_modules/jest/bin/jest.js --verbose --coverage --runInBand --watch"
+    "test": "vitest run --browser.headless",
+    "test:dev": "vitest watch --browser.headless --ui"
   },
   "repository": {
     "type": "git",
@@ -27,16 +27,10 @@
   "type": "module",
   "devDependencies": {
     "@nationalarchives/eslint-config": "^0.1.8",
-    "babel-jest": "^30.4.1",
-    "jest": "^30.4.2",
-    "jest-environment-jsdom": "^30.4.1",
-    "prettier": "^3.9.6"
-  },
-  "jest": {
-    "modulePathIgnorePatterns": [
-      "/package/"
-    ],
-    "testEnvironment": "jsdom",
-    "transform": {}
+    "@vitest/browser-playwright": "^4.1.10",
+    "@vitest/coverage-v8": "^4.1.10",
+    "@vitest/ui": "^4.1.10",
+    "prettier": "^3.9.6",
+    "vitest": "^4.1.10"
   }
 }

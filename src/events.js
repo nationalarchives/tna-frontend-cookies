@@ -29,6 +29,13 @@ export default class CookieEventHandler {
     }
   }
 
+  destroyInstance() {
+    this.log("Destroying TNAFrontendCookieEvents instance");
+    this.events = {};
+    this.oneTimeEvents = {};
+    window.TNAFrontendCookieEvents = null;
+  }
+
   /**
    * Add an event listener.
    * @param {String} event - The event to add a listener for.
