@@ -8,10 +8,6 @@ on:
       - "CHANGELOG.md"
       - "LICENCE"
       - "README.md"
-  pull_request:
-    types:
-      - opened
-      - synchronize
   workflow_dispatch:
 
 permissions:
