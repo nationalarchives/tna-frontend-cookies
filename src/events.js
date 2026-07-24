@@ -1,5 +1,5 @@
 /**
- * Class to handle cookies.
+ * Class to handle cookie events.
  * @class CookieEventHandler
  * @constructor
  * @public
@@ -21,6 +21,9 @@ export default class CookieEventHandler {
     window.TNAFrontendCookieEvents = this;
   }
 
+  /**
+   * Clear all event listeners.
+   */
   clearAll() {
     this.events = {};
     this.oneTimeEvents = {};
@@ -38,6 +41,11 @@ export default class CookieEventHandler {
     this.events[event] = [...this.events[event], callback];
   }
 
+  /**
+   * Add a one-time event listener.
+   * @param {String} event - The event to add a listener for.
+   * @param {Function} callback - The callback function to call when the event is triggered.
+   */
   once(event, callback) {
     if (!Object.hasOwn(this.oneTimeEvents, event)) {
       this.oneTimeEvents[event] = [];

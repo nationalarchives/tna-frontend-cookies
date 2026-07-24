@@ -35,7 +35,7 @@ export default class Cookies {
    * @param {Number} [options.defaultAge] - The default age of non-session cookies.
    * @param {Boolean} [options.noInit=false] - Don't initialise a blank cookie policy.
    */
-  /* eslint-disable-next-line max-lines-per-function, max-statements, complexity */
+  /* eslint-disable-next-line max-statements, */
   constructor(options = {}) {
     const {
       defaultDomain,
