@@ -50,8 +50,23 @@ export default class Cookies {
       defaultAge,
       newInstance = false,
       noInit = false,
+      debug = false,
     } = options;
+    this.debug =
+      (document.documentElement.dataset.tnaFrontendDebug || "false")
+        ?.toString()
+        .toLowerCase() === "true"
+        ? true
+        : debug;
+    if (this.debug) {
+      this.log("Debug mode enabled");
+    }
     if (!newInstance && window.TNAFrontendCookies) {
+      window.TNAFrontendCookies.debug = this.debug;
+      window.TNAFrontendCookies.events.debug = this.debug;
+      window.TNAFrontendCookies.log(
+        "Using existing TNAFrontendCookies instance",
+      );
       /* eslint-disable-next-line no-constructor-return */
       return window.TNAFrontendCookies;
     }
@@ -74,10 +89,6 @@ export default class Cookies {
       : parseInt(document.documentElement.dataset.tnaCookiesDefaultAge, 10) ||
         /* eslint-disable-next-line no-magic-numbers */
         365 * 24 * 60 * 60;
-    this.debug =
-      (document.documentElement.dataset.tnaFrontendDebug || "false")
-        ?.toString()
-        .toLowerCase() === "true";
     this.events = new CookieEventHandler(this.debug);
     this.policiesCorrectOnInit =
       Object.keys(this.policies).length === tnaCookiePolicies.length &&

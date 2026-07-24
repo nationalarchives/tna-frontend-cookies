@@ -13,12 +13,13 @@ export default class CookieEventHandler {
   debug = false;
 
   constructor(debug = false) {
-    this.debug = debug;
     if (window.TNAFrontendCookieEvents) {
       this.log("Using existing TNAFrontendCookieEvents instance");
+      window.TNAFrontendCookieEvents.debug = debug;
       /* eslint-disable-next-line no-constructor-return */
       return window.TNAFrontendCookieEvents;
     }
+    this.debug = debug;
     window.TNAFrontendCookieEvents = this;
   }
 

@@ -11,6 +11,11 @@ const clearAllCookies = () =>
 beforeEach(() => {
   new Cookies().destroyInstance();
   delete document.documentElement.dataset.tnaFrontendDebug;
+  delete document.documentElement.dataset.tnaCookiesDomain;
+  delete document.documentElement.dataset.tnaCookiesPath;
+  delete document.documentElement.dataset.tnaCookiesSecure;
+  delete document.documentElement.dataset.tnaCookiesPoliciesKey;
+  delete document.documentElement.dataset.tnaCookiesDefaultAge;
 });
 
 afterEach(() => {
@@ -37,6 +42,16 @@ describe("Basic functions", () => {
     expect(window.TNAFrontendCookies).toEqual(cookies);
     expect(window.TNAFrontendCookieEvents).toBeTruthy();
     expect(window.TNAFrontendCookieEvents).toEqual(cookies.events);
+  });
+
+  test("Can create new instance", async () => {
+    const cookies1 = new Cookies();
+    const cookies2 = new Cookies();
+    const cookies3 = new Cookies({ newInstance: true });
+
+    expect(cookies1).toEqual(cookies2);
+    expect(cookies1).not.toEqual(cookies3);
+    expect(cookies2).not.toEqual(cookies3);
   });
 
   test("Destroy instance", async () => {
@@ -363,11 +378,14 @@ describe("Initialisation", () => {
       secure: true,
       policiesKey: "cookies_policy_custom",
       defaultAge: 300,
+      debug: true,
     });
     expect(cookies.defaultDomain).toEqual(".localhost");
     expect(cookies.secure).toEqual(true);
     expect(cookies.policiesKey).toEqual("cookies_policy_custom");
     expect(cookies.defaultAge).toEqual(300);
+    expect(cookies.debug).toEqual(true);
+    expect(cookies.events.debug).toEqual(true);
 
     expect(document.cookie).not.toEqual("");
 
@@ -388,13 +406,8 @@ describe("Initialisation", () => {
   });
 
   test("With debug", async () => {
-    expect(document.documentElement.dataset.tnaFrontendDebug).toEqual(
-      undefined,
-    );
-    document.documentElement.dataset.tnaFrontendDebug = true;
-    expect(document.documentElement.dataset.tnaFrontendDebug).toEqual("true");
+    const cookies = new Cookies({ debug: true });
 
-    const cookies = new Cookies();
     expect(cookies.debug).toEqual(true);
     expect(cookies.events.debug).toEqual(true);
 
@@ -447,6 +460,76 @@ describe("Initialisation", () => {
     //   session: false,
     //   value: "bar",
     // });
+  });
+
+  test("Properties from HTML attributes", async () => {
+    document.documentElement.dataset.tnaCookiesDomain = ".localhost";
+    document.documentElement.dataset.tnaCookiesPoliciesKey =
+      "cookies_policy_custom";
+    document.documentElement.dataset.tnaCookiesDefaultAge = 300;
+    document.documentElement.dataset.tnaCookiesInsecure = true;
+    document.documentElement.dataset.tnaFrontendDebug = true;
+
+    const cookies = new Cookies();
+
+    expect(cookies.defaultDomain).toEqual(".localhost");
+    expect(cookies.secure).toEqual(false);
+    expect(cookies.policiesKey).toEqual("cookies_policy_custom");
+    expect(cookies.defaultAge).toEqual(300);
+    expect(cookies.debug).toEqual(true);
+    expect(cookies.events.debug).toEqual(true);
+  });
+
+  test("Explicit properties overwrite HTML attributes", async () => {
+    document.documentElement.dataset.tnaCookiesDomain = ".localhost";
+    document.documentElement.dataset.tnaCookiesPoliciesKey =
+      "cookies_policy_custom";
+    document.documentElement.dataset.tnaCookiesDefaultAge = 300;
+    document.documentElement.dataset.tnaCookiesInsecure = true;
+
+    const cookies = new Cookies({
+      defaultDomain: "localhost",
+      policiesKey: "cookies_policy_custom2",
+      secure: true,
+      defaultAge: 600,
+    });
+
+    expect(cookies.defaultDomain).toEqual("localhost");
+    expect(cookies.secure).toEqual(true);
+    expect(cookies.policiesKey).toEqual("cookies_policy_custom2");
+    expect(cookies.defaultAge).toEqual(600);
+  });
+
+  test("New instances don't change properties except for debug", async () => {
+    const cookies1 = new Cookies({
+      defaultDomain: "localhost",
+      policiesKey: "cookies_policy_custom1",
+      secure: true,
+      defaultAge: 600,
+      debug: true,
+    });
+
+    expect(cookies1.defaultDomain).toEqual("localhost");
+    expect(cookies1.policiesKey).toEqual("cookies_policy_custom1");
+    expect(cookies1.secure).toEqual(true);
+    expect(cookies1.defaultAge).toEqual(600);
+    expect(cookies1.debug).toEqual(true);
+
+    const cookies2 = new Cookies({
+      defaultDomain: ".localhost",
+      policiesKey: "cookies_policy_custom2",
+      secure: false,
+      defaultAge: 300,
+      debug: false,
+    });
+
+    expect(cookies1.debug).toEqual(false);
+
+    expect(cookies2.defaultDomain).toEqual("localhost");
+    expect(cookies2.policiesKey).toEqual("cookies_policy_custom1");
+    expect(cookies2.secure).toEqual(true);
+    expect(cookies2.defaultAge).toEqual(600);
+    expect(cookies2.debug).toEqual(false);
   });
 });
 
@@ -681,6 +764,24 @@ describe("Policies", () => {
   });
 
   describe("With existing cookies", () => {
+    test("Valid policy", async () => {
+      document.cookie =
+        "cookies_policy=%7B%22essential%22%3Atrue%2C%22settings%22%3Atrue%2C%22usage%22%3Atrue%2C%22marketing%22%3Atrue%7D";
+
+      const cookies = new Cookies();
+
+      expect(cookies.policiesCorrectOnInit).toEqual(true);
+      expect(cookies.all).toHaveProperty("cookies_policy");
+      expect(cookies.policies).toHaveProperty("essential");
+      expect(cookies.isPolicyAccepted("essential")).toEqual(true);
+      expect(cookies.policies).toHaveProperty("settings");
+      expect(cookies.isPolicyAccepted("settings")).toEqual(true);
+      expect(cookies.policies).toHaveProperty("usage");
+      expect(cookies.isPolicyAccepted("usage")).toEqual(true);
+      expect(cookies.policies).toHaveProperty("marketing");
+      expect(cookies.isPolicyAccepted("marketing")).toEqual(true);
+    });
+
     test("Empty policy", async () => {
       document.cookie = "cookies_policy=%7B%7D";
 
