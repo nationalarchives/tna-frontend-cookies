@@ -1,5 +1,5 @@
 {
-  "name": "@nationalarchives/frontend-cookies",
+  "name": "@nationalarchives/cookies",
   "version": "0.1.0",
   "description": "A reusable cookie library for The National Archives",
   "scripts": {
