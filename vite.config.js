@@ -5,8 +5,9 @@ export default defineConfig({
     lib: {
       entry: "src/iife.js",
       name: "TNAFrontendCookies",
-      fileName: () => "index.js",
-      formats: ["iife"],
+      fileName: (format) =>
+        format === "iife" ? "index.js" : `index.${format}.js`,
+      formats: ["iife", "es", "umd"],
     },
     sourcemap: true,
     minify: "oxc",
