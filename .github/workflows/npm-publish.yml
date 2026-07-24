@@ -18,11 +18,13 @@ jobs:
       - name: Get and validate version number
         id: get-version
         run: |
-          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
+          VERSION=$(echo "$GITHUB_REF" | sed -e 's,.*/\(.*\),\1,')
           # Strip "v" prefix from tag name
-          [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
+          [[ "$GITHUB_REF" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
           echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
           ./tasks/validate-version.sh "$VERSION"
+        env:
+          GITHUB_REF: ${{ github.ref }}
     outputs:
       version: ${{ steps.get-version.outputs.VERSION }}
 
