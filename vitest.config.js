@@ -9,6 +9,7 @@ export default defineConfig({
       instances: [{ browser: "chromium" }],
     },
     coverage: {
+      enabled: true,
       provider: "v8",
     },
     maxWorkers: 1,
