@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "A reusable cookie library for The National Archives",
   "scripts": {
+    "build": "vite build",
     "lint": "eslint",
     "prettier": "prettier --write .",
     "prettier:check": "prettier --check .",
@@ -25,12 +26,17 @@
   "main": "src/index.js",
   "homepage": "https://github.com/nationalarchives/tna-frontend-cookies#readme",
   "type": "module",
+  "files": [
+    "dist",
+    "src"
+  ],
   "devDependencies": {
     "@nationalarchives/eslint-config": "^0.1.8",
     "@vitest/browser-playwright": "^4.1.10",
     "@vitest/coverage-v8": "^4.1.10",
     "@vitest/ui": "^4.1.10",
     "prettier": "^3.9.6",
+    "vite": "^8.1.5",
     "vitest": "^4.1.10"
   }
 }

@@ -4,6 +4,7 @@
 .vscode/
 __screenshots__/
 coverage/
+dist/
 node_modules
 package
 RELEASE_NOTES.txt

@@ -3,5 +3,5 @@ import tnaEslintConfig from "@nationalarchives/eslint-config";
 
 export default defineConfig(
   [...tnaEslintConfig],
-  globalIgnores(["**/*.config.mjs", "**/*.test.js"]),
+  globalIgnores(["**/*.config.mjs", "**/*.test.js", "dist/**"]),
 );
