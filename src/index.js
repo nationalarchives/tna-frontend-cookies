@@ -2,10 +2,6 @@
 
 import CookieEventHandler from "./events";
 
-window.TNAFrontendCookies ||= null;
-
-const tnaCookiePolicies = ["usage", "settings", "marketing", "essential"];
-
 /**
  * Class to handle cookies.
  * @class Cookies
@@ -27,8 +23,8 @@ export default class Cookies {
   defaultAge = null;
   /** @protected */
   policiesCorrectOnInit = false;
-  /** @protected */
-  debug = false;
+
+  tnaCookiePolicies = ["usage", "settings", "marketing", "essential"];
 
   /**
    * Create a cookie handler.
@@ -37,10 +33,9 @@ export default class Cookies {
    * @param {Boolean} [options.secure] - Only set cookie in HTTPS environments.
    * @param {String} [options.policiesKey] - The name of the cookie.
    * @param {Number} [options.defaultAge] - The default age of non-session cookies.
-   * @param {String} [options.newInstance=false] - Create a fresh instance of the cookie class.
    * @param {Boolean} [options.noInit=false] - Don't initialise a blank cookie policy.
    */
-  /* eslint-disable-next-line max-lines-per-function, max-statements, complexity */
+  /* eslint-disable-next-line max-statements, */
   constructor(options = {}) {
     const {
       defaultDomain,
@@ -48,51 +43,28 @@ export default class Cookies {
       secure,
       policiesKey,
       defaultAge,
-      newInstance = false,
       noInit = false,
-      debug = false,
     } = options;
-    this.debug =
-      (document.documentElement.dataset.tnaFrontendDebug || "false")
-        ?.toString()
-        .toLowerCase() === "true"
-        ? true
-        : debug;
-    if (this.debug) {
-      this.log("Debug mode enabled");
-    }
-    if (!newInstance && window.TNAFrontendCookies) {
-      window.TNAFrontendCookies.debug = this.debug;
-      window.TNAFrontendCookies.events.debug = this.debug;
-      window.TNAFrontendCookies.log(
-        "Using existing TNAFrontendCookies instance",
-      );
-      /* eslint-disable-next-line no-constructor-return */
-      return window.TNAFrontendCookies;
-    }
+    const docDataset = document.documentElement.dataset;
     this.defaultDomain = defaultDomain
       ? defaultDomain
-      : document.documentElement.dataset.tnaCookiesDomain ||
-        window.location.hostname;
+      : docDataset.tnaCookiesDomain || window.location.hostname;
     this.defaultPath = defaultPath
       ? defaultPath
-      : document.documentElement.dataset.tnaCookiesPath || "/";
-    this.secure = secure
-      ? secure
-      : document.documentElement.dataset.tnaCookiesInsecure !== "true";
+      : docDataset.tnaCookiesPath || "/";
+    this.secure = secure ? secure : docDataset.tnaCookiesInsecure !== "true";
     this.policiesKey = policiesKey
       ? policiesKey
-      : document.documentElement.dataset.tnaCookiesPoliciesKey ||
-        "cookies_policy";
+      : docDataset.tnaCookiesPoliciesKey || "cookies_policy";
     this.defaultAge = defaultAge
       ? defaultAge
-      : parseInt(document.documentElement.dataset.tnaCookiesDefaultAge, 10) ||
+      : parseInt(docDataset.tnaCookiesDefaultAge, 10) ||
         /* eslint-disable-next-line no-magic-numbers */
         365 * 24 * 60 * 60;
-    this.events = new CookieEventHandler(this.debug);
+    this.events = new CookieEventHandler();
     this.policiesCorrectOnInit =
-      Object.keys(this.policies).length === tnaCookiePolicies.length &&
-      tnaCookiePolicies.every(
+      Object.keys(this.policies).length === this.tnaCookiePolicies.length &&
+      this.tnaCookiePolicies.every(
         (policy) =>
           Object.keys(this.policies).includes(policy) &&
           typeof this.policies[policy] === "boolean",
@@ -100,31 +72,16 @@ export default class Cookies {
     if (!this.policiesCorrectOnInit && !noInit) {
       this.init();
     }
-    this.log({
-      defaultDomain: this.defaultDomain,
-      defaultPath: this.defaultPath,
-      secure: this.secure,
-      policiesKey: this.policiesKey,
-      defaultAge: this.defaultAge,
-      policiesCorrectOnInit: this.policiesCorrectOnInit,
-    });
-    if (!newInstance && !window.TNAFrontendCookies) {
-      window.TNAFrontendCookies = this;
-    }
   }
 
   /** @protected */
   init() {
     const existingPolicies = this.policies;
-    this.log("Existing policies on init:", existingPolicies);
     const filteredExistingPolicies = Object.fromEntries(
       Object.keys(existingPolicies)
-        .filter((policy) => tnaCookiePolicies.includes(policy))
+        .filter((policy) => this.tnaCookiePolicies.includes(policy))
         .map((policy) => [policy, existingPolicies[policy]]),
     );
-    if (Object.keys(filteredExistingPolicies).length) {
-      this.log("Filtered existing policies:", filteredExistingPolicies);
-    }
     this.savePolicies({
       usage: false,
       settings: false,
@@ -132,19 +89,6 @@ export default class Cookies {
       ...filteredExistingPolicies,
       essential: true,
     });
-  }
-
-  log(...args) {
-    if (this.debug) {
-      /* eslint-disable-next-line no-console */
-      console.log("[TNA Frontend Cookies]", ...args, this.all);
-    }
-  }
-
-  destroyInstance() {
-    this.log("Destroying TNAFrontendCookies instance");
-    this.events.destroyInstance();
-    window.TNAFrontendCookies = null;
   }
 
   /** @protected */
@@ -235,7 +179,7 @@ export default class Cookies {
     const sessionString = session ? "" : `; max-age=${maxAge}`;
     const cookie = `${encodeURIComponent(key)}=${encodeURIComponent(value)}; domain=${domain}; samesite=${sameSite}; path=${path}${sessionString}${secureString}`;
     document.cookie = cookie;
-    this.log("Set cookie:", {
+    const cookieDetails = {
       key,
       value,
       maxAge,
@@ -245,18 +189,8 @@ export default class Cookies {
       secure,
       session,
       cookie,
-    });
-    this.events.trigger("setCookie", {
-      key,
-      value,
-      maxAge,
-      path,
-      sameSite,
-      domain,
-      secure,
-      session,
-      cookie,
-    });
+    };
+    this.events.trigger("setCookie", cookieDetails);
   }
 
   /**
@@ -267,7 +201,6 @@ export default class Cookies {
   delete(key, path = "/", domain = this.defaultDomain) {
     const options = { maxAge: -1, path, domain: domain || this.defaultDomain };
     this.set(key, "", options);
-    this.log("Deleted cookie:", { key, path, domain, ...options });
     this.events.trigger("deleteCookie", { key, ...options });
   }
 
@@ -278,8 +211,8 @@ export default class Cookies {
     Object.keys(this.all).forEach((cookie) => {
       this.delete(cookie, path, domain);
     });
-    this.log("Deleted all cookies", { path, domain });
-    this.events.trigger("deleteAllCookies", { path, domain });
+    const details = { path, domain };
+    this.events.trigger("deleteAllCookies", details);
   }
 
   /**
@@ -290,7 +223,6 @@ export default class Cookies {
     if (!Object.hasOwn(this.policies, policy)) {
       throw new Error(`Policy '${policy}' does not exist`);
     }
-    this.log("Accepting policy:", policy);
     this.setPolicy(policy, true);
     this.events.trigger("acceptPolicy", policy);
     this.events.trigger("changePolicy", { [policy]: true });
@@ -304,7 +236,6 @@ export default class Cookies {
     if (!Object.hasOwn(this.policies, policy)) {
       throw new Error(`Policy '${policy}' does not exist`);
     }
-    this.log("Rejecting policy:", policy);
     this.setPolicy(policy, false);
     this.events.trigger("rejectPolicy", policy);
     this.events.trigger("changePolicy", { [policy]: false });
@@ -320,10 +251,8 @@ export default class Cookies {
       throw new Error(`Policy '${policy}' does not exist`);
     }
     if (policy === "essential") {
-      this.log("Cannot change essential policy, it is always accepted.");
       return;
     }
-    this.log(`Setting policy ${policy} to ${accepted}`);
     this.savePolicies({
       ...this.policies,
       [policy]: accepted,
@@ -336,7 +265,6 @@ export default class Cookies {
    * Accept all the cookie policies.
    */
   acceptAllPolicies() {
-    this.log("Accepting all policies");
     const allPolicies = Object.fromEntries(
       Object.keys(this.policies).map((key) => [key.toLowerCase(), true]),
     );
@@ -349,7 +277,6 @@ export default class Cookies {
    * Reject all the cookie policies.
    */
   rejectAllPolicies() {
-    this.log("Rejecting all policies");
     const allPolicies = {
       ...Object.fromEntries(
         Object.keys(this.policies).map((key) => [key.toLowerCase(), false]),
@@ -366,7 +293,6 @@ export default class Cookies {
    * @param {object} policies - The policies to commit.
    */
   savePolicies(policies) {
-    this.log("Saving policies:", policies);
     this.set(this.policiesKey, JSON.stringify(policies));
   }
 
@@ -388,7 +314,6 @@ export default class Cookies {
    * @param {Function} callback - The callback function to call when the event is triggered.
    */
   on(event, callback) {
-    this.log(`Adding event listener for: ${event}`);
     this.events.on(event, callback);
   }
 
@@ -398,7 +323,6 @@ export default class Cookies {
    * @param {Function} callback - The callback function to call when the event is triggered.
    */
   once(event, callback) {
-    this.log(`Adding one-time event listener for: ${event}`);
     this.events.once(event, callback);
   }
 }

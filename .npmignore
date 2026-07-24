@@ -1,6 +1,0 @@
-.github
-.nvmrc
-.prettierignore
-index.test.js
-vitest.config.js
-tasks/
