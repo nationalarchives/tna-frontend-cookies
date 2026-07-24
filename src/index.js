@@ -62,12 +62,12 @@ export default class Cookies {
       this.log("Debug mode enabled");
     }
     if (!newInstance && window.TNAFrontendCookies) {
-      /* eslint-disable-next-line no-constructor-return */
       window.TNAFrontendCookies.debug = this.debug;
       window.TNAFrontendCookies.events.debug = this.debug;
       window.TNAFrontendCookies.log(
         "Using existing TNAFrontendCookies instance",
       );
+      /* eslint-disable-next-line no-constructor-return */
       return window.TNAFrontendCookies;
     }
     this.defaultDomain = defaultDomain

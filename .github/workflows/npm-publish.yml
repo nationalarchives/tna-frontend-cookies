@@ -23,7 +23,6 @@ jobs:
     outputs:
       version: ${{ steps.get-version.outputs.VERSION }}
 
-      
   publish-npm:
     runs-on: ubuntu-latest
     environment:
@@ -42,7 +41,7 @@ jobs:
         with:
           node-version-file: .nvmrc
           registry-url: https://registry.npmjs.org/
-          scope: '@nationalarchives'
+          scope: "@nationalarchives"
       - name: Install dependencies
         run: npm ci
       - name: Publish to npm
