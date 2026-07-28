@@ -9,6 +9,28 @@
 
 TNA Frontend Cookies is a reusable cookie library used by [TNA Frontend](https://github.com/nationalarchives/tna-frontend) and [TNA Frontend Analytics](https://github.com/nationalarchives/tna-frontend-analytics).
 
+## Quickstart
+
+```sh
+# Install dependencies
+npm install
+npx playwright install
+
+# Build the package
+npm run build
+
+# Run the tests
+npm run test
+# ...or run the tests in dev mode
+npm run test:dev
+
+# Lint the codebase
+npm run lint
+
+# Apply formatting
+npm run prettier
+```
+
 ## Useful links
 
 - [TNA Frontend Storybook](https://nationalarchives.github.io/tna-frontend/)
