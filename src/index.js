@@ -16,24 +16,24 @@ export default class Cookies {
   /** @protected */
   secure = true;
   /** @protected */
-  policiesKey = "";
+  preferencesKey = "";
   /** @protected */
   events = null;
   /** @protected */
   defaultAge = null;
   /** @protected */
-  policiesCorrectOnInit = false;
+  preferencesCorrectOnInit = false;
 
-  tnaCookiePolicies = ["usage", "settings", "marketing", "essential"];
+  tnaCookiePreferences = ["usage", "settings", "marketing", "essential"];
 
   /**
    * Create a cookie handler.
    * @param {String} [options.defaultDomain] - The domain to register the cookie with.
    * @param {String} [options.path] - The domain to register the cookie with.
    * @param {Boolean} [options.secure] - Only set cookie in HTTPS environments.
-   * @param {String} [options.policiesKey] - The name of the cookie.
+   * @param {String} [options.preferencesKey] - The name of the cookie.
    * @param {Number} [options.defaultAge] - The default age of non-session cookies.
-   * @param {Boolean} [options.noInit=false] - Don't initialise a blank cookie policy.
+   * @param {Boolean} [options.noInit=false] - Don't initialise a blank cookie preference.
    */
   /* eslint-disable-next-line max-statements, */
   constructor(options = {}) {
@@ -41,7 +41,7 @@ export default class Cookies {
       defaultDomain,
       defaultPath,
       secure,
-      policiesKey,
+      preferencesKey,
       defaultAge,
       noInit = false,
     } = options;
@@ -53,40 +53,41 @@ export default class Cookies {
       ? defaultPath
       : docDataset.tnaCookiesPath || "/";
     this.secure = secure ? secure : docDataset.tnaCookiesInsecure !== "true";
-    this.policiesKey = policiesKey
-      ? policiesKey
-      : docDataset.tnaCookiesPoliciesKey || "cookies_policy";
+    this.preferencesKey = preferencesKey
+      ? preferencesKey
+      : docDataset.tnaCookiesPreferencesKey || "cookie_preferences";
     this.defaultAge = defaultAge
       ? defaultAge
       : parseInt(docDataset.tnaCookiesDefaultAge, 10) ||
         /* eslint-disable-next-line no-magic-numbers */
         365 * 24 * 60 * 60;
     this.events = new CookieEventHandler();
-    this.policiesCorrectOnInit =
-      Object.keys(this.policies).length === this.tnaCookiePolicies.length &&
-      this.tnaCookiePolicies.every(
-        (policy) =>
-          Object.keys(this.policies).includes(policy) &&
-          typeof this.policies[policy] === "boolean",
+    this.preferencesCorrectOnInit =
+      Object.keys(this.preferences).length ===
+        this.tnaCookiePreferences.length &&
+      this.tnaCookiePreferences.every(
+        (preference) =>
+          Object.keys(this.preferences).includes(preference) &&
+          typeof this.preferences[preference] === "boolean",
       );
-    if (!this.policiesCorrectOnInit && !noInit) {
+    if (!this.preferencesCorrectOnInit && !noInit) {
       this.init();
     }
   }
 
   /** @protected */
   init() {
-    const existingPolicies = this.policies;
-    const filteredExistingPolicies = Object.fromEntries(
-      Object.keys(existingPolicies)
-        .filter((policy) => this.tnaCookiePolicies.includes(policy))
-        .map((policy) => [policy, existingPolicies[policy]]),
+    const existingPreferences = this.preferences;
+    const filteredExistingPreferences = Object.fromEntries(
+      Object.keys(existingPreferences)
+        .filter((preference) => this.tnaCookiePreferences.includes(preference))
+        .map((preference) => [preference, existingPreferences[preference]]),
     );
-    this.savePolicies({
+    this.savePreferences({
       usage: false,
       settings: false,
       marketing: false,
-      ...filteredExistingPolicies,
+      ...filteredExistingPreferences,
       essential: true,
     });
   }
@@ -109,9 +110,9 @@ export default class Cookies {
   }
 
   /** @protected */
-  get policies() {
+  get preferences() {
     try {
-      return JSON.parse(this.get(this.policiesKey) || "{}");
+      return JSON.parse(this.get(this.preferencesKey) || "{}");
       // eslint-disable-next-line no-unused-vars
     } catch (error) {
       return {};
@@ -216,96 +217,96 @@ export default class Cookies {
   }
 
   /**
-   * Accept a policy.
-   * @param {String} policy - The name of the policy.
+   * Accept a preference.
+   * @param {String} preference - The name of the preference.
    */
-  acceptPolicy(policy) {
-    if (!Object.hasOwn(this.policies, policy)) {
-      throw new Error(`Policy '${policy}' does not exist`);
+  enablePreference(preference) {
+    if (!Object.hasOwn(this.preferences, preference)) {
+      throw new Error(`Preference '${preference}' does not exist`);
     }
-    this.setPolicy(policy, true);
-    this.events.trigger("acceptPolicy", policy);
-    this.events.trigger("changePolicy", { [policy]: true });
+    this.setPreference(preference, true);
+    this.events.trigger("enablePreference", preference);
+    this.events.trigger("changePreference", { [preference]: true });
   }
 
   /**
-   * Reject a policy.
-   * @param {String} policy - The name of the policy.
+   * Reject a preference.
+   * @param {String} preference - The name of the preference.
    */
-  rejectPolicy(policy) {
-    if (!Object.hasOwn(this.policies, policy)) {
-      throw new Error(`Policy '${policy}' does not exist`);
+  disablePreference(preference) {
+    if (!Object.hasOwn(this.preferences, preference)) {
+      throw new Error(`Preference '${preference}' does not exist`);
     }
-    this.setPolicy(policy, false);
-    this.events.trigger("rejectPolicy", policy);
-    this.events.trigger("changePolicy", { [policy]: false });
+    this.setPreference(preference, false);
+    this.events.trigger("disablePreference", preference);
+    this.events.trigger("changePreference", { [preference]: false });
   }
 
   /**
-   * Set a policy.
-   * @param {String} policy - The name of the policy.
-   * @param {Boolean} accepted - Whether the policy is accepted or not.
+   * Set a preference.
+   * @param {String} preference - The name of the preference.
+   * @param {Boolean} accepted - Whether the preference is accepted or not.
    */
-  setPolicy(policy, accepted) {
-    if (!Object.hasOwn(this.policies, policy)) {
-      throw new Error(`Policy '${policy}' does not exist`);
+  setPreference(preference, accepted) {
+    if (!Object.hasOwn(this.preferences, preference)) {
+      throw new Error(`Preference '${preference}' does not exist`);
     }
-    if (policy === "essential") {
+    if (preference === "essential") {
       return;
     }
-    this.savePolicies({
-      ...this.policies,
-      [policy]: accepted,
+    this.savePreferences({
+      ...this.preferences,
+      [preference]: accepted,
       essential: true,
     });
-    this.events.trigger("changePolicy", { [policy]: accepted });
+    this.events.trigger("changePreference", { [preference]: accepted });
   }
 
   /**
-   * Accept all the cookie policies.
+   * Accept all the cookie preferences.
    */
-  acceptAllPolicies() {
-    const allPolicies = Object.fromEntries(
-      Object.keys(this.policies).map((key) => [key.toLowerCase(), true]),
+  ensableAllPreferences() {
+    const allPreferences = Object.fromEntries(
+      Object.keys(this.preferences).map((key) => [key.toLowerCase(), true]),
     );
-    this.savePolicies(allPolicies);
-    this.events.trigger("acceptAllPolicies");
-    this.events.trigger("changePolicy", allPolicies);
+    this.savePreferences(allPreferences);
+    this.events.trigger("ensableAllPreferences");
+    this.events.trigger("changePreference", allPreferences);
   }
 
   /**
-   * Reject all the cookie policies.
+   * Reject all the cookie preferences.
    */
-  rejectAllPolicies() {
-    const allPolicies = {
+  disableAllPreferences() {
+    const allPreferences = {
       ...Object.fromEntries(
-        Object.keys(this.policies).map((key) => [key.toLowerCase(), false]),
+        Object.keys(this.preferences).map((key) => [key.toLowerCase(), false]),
       ),
       essential: true,
     };
-    this.savePolicies(allPolicies);
-    this.events.trigger("rejectAllPolicies");
-    this.events.trigger("changePolicy", allPolicies);
+    this.savePreferences(allPreferences);
+    this.events.trigger("disableAllPreferences");
+    this.events.trigger("changePreference", allPreferences);
   }
 
   /**
-   * Commit policy preferences to the browser.
-   * @param {object} policies - The policies to commit.
+   * Commit preference preferences to the browser.
+   * @param {object} preferences - The preferences to commit.
    */
-  savePolicies(policies) {
-    this.set(this.policiesKey, JSON.stringify(policies));
+  savePreferences(preferences) {
+    this.set(this.preferencesKey, JSON.stringify(preferences));
   }
 
   /**
-   * Get the acceptance status of a policy.
-   * @param {String} policy - The name of the policy.
+   * Get the acceptance status of a preference.
+   * @param {String} preference - The name of the preference.
    * @returns {Boolean}
    */
-  isPolicyAccepted(policy) {
-    if (Object.hasOwn(this.policies, policy)) {
-      return this.policies[policy] === true;
+  isPreferenceAccepted(preference) {
+    if (Object.hasOwn(this.preferences, preference)) {
+      return this.preferences[preference] === true;
     }
-    throw new Error(`Policy '${policy}' does not exist`);
+    throw new Error(`Preference '${preference}' does not exist`);
   }
 
   /**

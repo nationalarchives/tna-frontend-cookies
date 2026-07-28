@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 ### Changed
+
+- Updated all references to "policy" to "preference", e.g. `policiesKey` (defaulting to `cookies_policy`) is now `preferencesKey` (defaulting to `cookie_preferences`)
+
 ### Deprecated
 ### Removed
 ### Fixed
