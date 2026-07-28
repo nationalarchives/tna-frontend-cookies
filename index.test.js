@@ -369,8 +369,8 @@ describe("Events", () => {
     cookies.on("enablePreference", mockEnablePreferenceCallback);
     const mockDisablePreferenceCallback = vi.fn();
     cookies.on("disablePreference", mockDisablePreferenceCallback);
-    const mockEnsableAllPreferencesCallback = vi.fn();
-    cookies.on("ensableAllPreferences", mockEnsableAllPreferencesCallback);
+    const mockEnableAllPreferencesCallback = vi.fn();
+    cookies.on("enableAllPreferences", mockEnableAllPreferencesCallback);
     const mockDisableAllPreferencesCallback = vi.fn();
     cookies.on("disableAllPreferences", mockDisableAllPreferencesCallback);
     const mockChangePreferenceCallback = vi.fn();
@@ -383,7 +383,7 @@ describe("Events", () => {
     cookies.enablePreference("settings");
     cookies.disablePreference("settings");
     cookies.setPreference("settings", true);
-    cookies.ensableAllPreferences();
+    cookies.enableAllPreferences();
     cookies.disableAllPreferences();
     cookies.deleteAll();
 
@@ -392,7 +392,7 @@ describe("Events", () => {
     expect(mockDeleteAllCookiesCallback.mock.calls).toHaveLength(1);
     expect(mockEnablePreferenceCallback.mock.calls).toHaveLength(1);
     expect(mockDisablePreferenceCallback.mock.calls).toHaveLength(1);
-    expect(mockEnsableAllPreferencesCallback.mock.calls).toHaveLength(1);
+    expect(mockEnableAllPreferencesCallback.mock.calls).toHaveLength(1);
     expect(mockDisableAllPreferencesCallback.mock.calls).toHaveLength(1);
     expect(mockChangePreferenceCallback.mock.calls).toHaveLength(7);
   });
@@ -460,10 +460,10 @@ describe("Initialisation", () => {
     expect(document.cookie).not.toEqual("");
 
     expect(cookies.exists("cookie_preferences_custom")).toEqual(true);
-    cookies.ensableAllPreferences();
-    expect(cookies.isPreferenceAccepted("settings")).toEqual(true);
-    expect(cookies.isPreferenceAccepted("usage")).toEqual(true);
-    expect(cookies.isPreferenceAccepted("marketing")).toEqual(true);
+    cookies.enableAllPreferences();
+    expect(cookies.preference("settings")).toEqual(true);
+    expect(cookies.preference("usage")).toEqual(true);
+    expect(cookies.preference("marketing")).toEqual(true);
   });
 
   test("With a different path", async () => {
@@ -545,57 +545,57 @@ describe("Preferences", () => {
   test("Get non-existent preference", async () => {
     const cookies = new Cookies();
 
-    expect(() => cookies.isPreferenceAccepted("foobar")).toThrow(
+    expect(() => cookies.preference("foobar")).toThrow(
       new Error("Preference 'foobar' does not exist"),
     );
   });
 
   test("Accept preference", async () => {
     const cookies = new Cookies();
-    expect(cookies).toHaveProperty("isPreferenceAccepted");
+    expect(cookies).toHaveProperty("preference");
 
     expect(cookies.preferences).toHaveProperty("essential");
     expect(cookies.preferences.essential).toEqual(true);
-    expect(cookies.isPreferenceAccepted("essential")).toEqual(true);
+    expect(cookies.preference("essential")).toEqual(true);
     expect(cookies.preferences).toHaveProperty("settings");
     expect(cookies.preferences.settings).toEqual(false);
-    expect(cookies.isPreferenceAccepted("settings")).toEqual(false);
+    expect(cookies.preference("settings")).toEqual(false);
     expect(cookies.preferences).toHaveProperty("usage");
     expect(cookies.preferences.usage).toEqual(false);
-    expect(cookies.isPreferenceAccepted("usage")).toEqual(false);
+    expect(cookies.preference("usage")).toEqual(false);
     expect(cookies.preferences).toHaveProperty("marketing");
     expect(cookies.preferences.marketing).toEqual(false);
-    expect(cookies.isPreferenceAccepted("marketing")).toEqual(false);
+    expect(cookies.preference("marketing")).toEqual(false);
 
     cookies.enablePreference("settings");
     expect(cookies.preferences.essential).toEqual(true);
-    expect(cookies.isPreferenceAccepted("essential")).toEqual(true);
+    expect(cookies.preference("essential")).toEqual(true);
     expect(cookies.preferences.settings).toEqual(true);
-    expect(cookies.isPreferenceAccepted("settings")).toEqual(true);
+    expect(cookies.preference("settings")).toEqual(true);
     expect(cookies.preferences.usage).toEqual(false);
-    expect(cookies.isPreferenceAccepted("usage")).toEqual(false);
+    expect(cookies.preference("usage")).toEqual(false);
     expect(cookies.preferences.marketing).toEqual(false);
-    expect(cookies.isPreferenceAccepted("marketing")).toEqual(false);
+    expect(cookies.preference("marketing")).toEqual(false);
 
     cookies.enablePreference("usage");
     expect(cookies.preferences.essential).toEqual(true);
-    expect(cookies.isPreferenceAccepted("essential")).toEqual(true);
+    expect(cookies.preference("essential")).toEqual(true);
     expect(cookies.preferences.settings).toEqual(true);
-    expect(cookies.isPreferenceAccepted("settings")).toEqual(true);
+    expect(cookies.preference("settings")).toEqual(true);
     expect(cookies.preferences.usage).toEqual(true);
-    expect(cookies.isPreferenceAccepted("usage")).toEqual(true);
+    expect(cookies.preference("usage")).toEqual(true);
     expect(cookies.preferences.marketing).toEqual(false);
-    expect(cookies.isPreferenceAccepted("marketing")).toEqual(false);
+    expect(cookies.preference("marketing")).toEqual(false);
 
     cookies.enablePreference("marketing");
     expect(cookies.preferences.essential).toEqual(true);
-    expect(cookies.isPreferenceAccepted("essential")).toEqual(true);
+    expect(cookies.preference("essential")).toEqual(true);
     expect(cookies.preferences.settings).toEqual(true);
-    expect(cookies.isPreferenceAccepted("settings")).toEqual(true);
+    expect(cookies.preference("settings")).toEqual(true);
     expect(cookies.preferences.usage).toEqual(true);
-    expect(cookies.isPreferenceAccepted("usage")).toEqual(true);
+    expect(cookies.preference("usage")).toEqual(true);
     expect(cookies.preferences.marketing).toEqual(true);
-    expect(cookies.isPreferenceAccepted("marketing")).toEqual(true);
+    expect(cookies.preference("marketing")).toEqual(true);
   });
 
   test("Accept non-existent preference", async () => {
@@ -618,30 +618,30 @@ describe("Preferences", () => {
 
   test("Accept all preferences", async () => {
     const cookies = new Cookies();
-    expect(cookies).toHaveProperty("ensableAllPreferences");
+    expect(cookies).toHaveProperty("enableAllPreferences");
 
     expect(cookies.preferences).toHaveProperty("essential");
     expect(cookies.preferences.essential).toEqual(true);
-    expect(cookies.isPreferenceAccepted("essential")).toEqual(true);
+    expect(cookies.preference("essential")).toEqual(true);
     expect(cookies.preferences).toHaveProperty("settings");
     expect(cookies.preferences.settings).toEqual(false);
-    expect(cookies.isPreferenceAccepted("settings")).toEqual(false);
+    expect(cookies.preference("settings")).toEqual(false);
     expect(cookies.preferences).toHaveProperty("usage");
     expect(cookies.preferences.usage).toEqual(false);
-    expect(cookies.isPreferenceAccepted("usage")).toEqual(false);
+    expect(cookies.preference("usage")).toEqual(false);
     expect(cookies.preferences).toHaveProperty("marketing");
     expect(cookies.preferences.marketing).toEqual(false);
-    expect(cookies.isPreferenceAccepted("marketing")).toEqual(false);
+    expect(cookies.preference("marketing")).toEqual(false);
 
-    cookies.ensableAllPreferences();
+    cookies.enableAllPreferences();
     expect(cookies.preferences.essential).toEqual(true);
-    expect(cookies.isPreferenceAccepted("essential")).toEqual(true);
+    expect(cookies.preference("essential")).toEqual(true);
     expect(cookies.preferences.settings).toEqual(true);
-    expect(cookies.isPreferenceAccepted("settings")).toEqual(true);
+    expect(cookies.preference("settings")).toEqual(true);
     expect(cookies.preferences.usage).toEqual(true);
-    expect(cookies.isPreferenceAccepted("usage")).toEqual(true);
+    expect(cookies.preference("usage")).toEqual(true);
     expect(cookies.preferences.marketing).toEqual(true);
-    expect(cookies.isPreferenceAccepted("marketing")).toEqual(true);
+    expect(cookies.preference("marketing")).toEqual(true);
   });
 
   test("Reject preference", async () => {
@@ -651,84 +651,84 @@ describe("Preferences", () => {
     cookies.enablePreference("usage");
     cookies.enablePreference("marketing");
     expect(cookies.preferences.essential).toEqual(true);
-    expect(cookies.isPreferenceAccepted("essential")).toEqual(true);
+    expect(cookies.preference("essential")).toEqual(true);
     expect(cookies.preferences.settings).toEqual(true);
-    expect(cookies.isPreferenceAccepted("settings")).toEqual(true);
+    expect(cookies.preference("settings")).toEqual(true);
     expect(cookies.preferences.usage).toEqual(true);
-    expect(cookies.isPreferenceAccepted("usage")).toEqual(true);
+    expect(cookies.preference("usage")).toEqual(true);
     expect(cookies.preferences.marketing).toEqual(true);
-    expect(cookies.isPreferenceAccepted("marketing")).toEqual(true);
+    expect(cookies.preference("marketing")).toEqual(true);
 
     cookies.disablePreference("settings");
     expect(cookies.preferences.essential).toEqual(true);
-    expect(cookies.isPreferenceAccepted("essential")).toEqual(true);
+    expect(cookies.preference("essential")).toEqual(true);
     expect(cookies.preferences.settings).toEqual(false);
-    expect(cookies.isPreferenceAccepted("settings")).toEqual(false);
+    expect(cookies.preference("settings")).toEqual(false);
     expect(cookies.preferences.usage).toEqual(true);
-    expect(cookies.isPreferenceAccepted("usage")).toEqual(true);
+    expect(cookies.preference("usage")).toEqual(true);
     expect(cookies.preferences.marketing).toEqual(true);
-    expect(cookies.isPreferenceAccepted("marketing")).toEqual(true);
+    expect(cookies.preference("marketing")).toEqual(true);
 
     cookies.disablePreference("usage");
     expect(cookies.preferences.essential).toEqual(true);
-    expect(cookies.isPreferenceAccepted("essential")).toEqual(true);
+    expect(cookies.preference("essential")).toEqual(true);
     expect(cookies.preferences.settings).toEqual(false);
-    expect(cookies.isPreferenceAccepted("settings")).toEqual(false);
+    expect(cookies.preference("settings")).toEqual(false);
     expect(cookies.preferences.usage).toEqual(false);
-    expect(cookies.isPreferenceAccepted("usage")).toEqual(false);
+    expect(cookies.preference("usage")).toEqual(false);
     expect(cookies.preferences.marketing).toEqual(true);
-    expect(cookies.isPreferenceAccepted("marketing")).toEqual(true);
+    expect(cookies.preference("marketing")).toEqual(true);
 
     cookies.disablePreference("marketing");
     expect(cookies.preferences.essential).toEqual(true);
-    expect(cookies.isPreferenceAccepted("essential")).toEqual(true);
+    expect(cookies.preference("essential")).toEqual(true);
     expect(cookies.preferences.settings).toEqual(false);
-    expect(cookies.isPreferenceAccepted("settings")).toEqual(false);
+    expect(cookies.preference("settings")).toEqual(false);
     expect(cookies.preferences.usage).toEqual(false);
-    expect(cookies.isPreferenceAccepted("usage")).toEqual(false);
+    expect(cookies.preference("usage")).toEqual(false);
     expect(cookies.preferences.marketing).toEqual(false);
-    expect(cookies.isPreferenceAccepted("marketing")).toEqual(false);
+    expect(cookies.preference("marketing")).toEqual(false);
   });
 
   test("Reject all preferences", async () => {
     const cookies = new Cookies();
     expect(cookies).toHaveProperty("disableAllPreferences");
 
-    cookies.ensableAllPreferences();
+    cookies.enableAllPreferences();
     expect(cookies.preferences.essential).toEqual(true);
-    expect(cookies.isPreferenceAccepted("essential")).toEqual(true);
+    expect(cookies.preference("essential")).toEqual(true);
     expect(cookies.preferences.settings).toEqual(true);
-    expect(cookies.isPreferenceAccepted("settings")).toEqual(true);
+    expect(cookies.preference("settings")).toEqual(true);
     expect(cookies.preferences.usage).toEqual(true);
-    expect(cookies.isPreferenceAccepted("usage")).toEqual(true);
+    expect(cookies.preference("usage")).toEqual(true);
     expect(cookies.preferences.marketing).toEqual(true);
-    expect(cookies.isPreferenceAccepted("marketing")).toEqual(true);
+    expect(cookies.preference("marketing")).toEqual(true);
 
     cookies.disableAllPreferences();
     expect(cookies.preferences.essential).toEqual(true);
-    expect(cookies.isPreferenceAccepted("essential")).toEqual(true);
+    expect(cookies.preference("essential")).toEqual(true);
     expect(cookies.preferences.settings).toEqual(false);
-    expect(cookies.isPreferenceAccepted("settings")).toEqual(false);
+    expect(cookies.preference("settings")).toEqual(false);
     expect(cookies.preferences.usage).toEqual(false);
-    expect(cookies.isPreferenceAccepted("usage")).toEqual(false);
+    expect(cookies.preference("usage")).toEqual(false);
     expect(cookies.preferences.marketing).toEqual(false);
-    expect(cookies.isPreferenceAccepted("marketing")).toEqual(false);
+    expect(cookies.preference("marketing")).toEqual(false);
   });
 
   test("Protected essential preference", async () => {
     const cookies = new Cookies();
 
     expect(cookies.preferences).toHaveProperty("essential");
-    expect(cookies.isPreferenceAccepted("essential")).toEqual(true);
+    expect(cookies.preference("essential")).toEqual(true);
 
     cookies.enablePreference("essential");
-    expect(cookies.isPreferenceAccepted("essential")).toEqual(true);
+    expect(cookies.preference("essential")).toEqual(true);
 
     cookies.disablePreference("essential");
-    expect(cookies.isPreferenceAccepted("essential")).toEqual(true);
+    expect(cookies.preference("essential")).toEqual(true);
 
     cookies.disableAllPreferences();
-    expect(cookies.isPreferenceAccepted("essential")).toEqual(true);
+    expect(cookies.preference("essential")).toEqual(true);
   });
 
   test("Custom preference key", async () => {
@@ -739,7 +739,7 @@ describe("Preferences", () => {
 
     expect(cookies.preferences.settings).toEqual(false);
 
-    cookies.ensableAllPreferences();
+    cookies.enableAllPreferences();
     expect(cookies.preferences.settings).toEqual(true);
   });
 
@@ -753,13 +753,13 @@ describe("Preferences", () => {
       expect(cookies.preferencesCorrectOnInit).toEqual(true);
       expect(cookies.all).toHaveProperty("cookie_preferences");
       expect(cookies.preferences).toHaveProperty("essential");
-      expect(cookies.isPreferenceAccepted("essential")).toEqual(true);
+      expect(cookies.preference("essential")).toEqual(true);
       expect(cookies.preferences).toHaveProperty("settings");
-      expect(cookies.isPreferenceAccepted("settings")).toEqual(true);
+      expect(cookies.preference("settings")).toEqual(true);
       expect(cookies.preferences).toHaveProperty("usage");
-      expect(cookies.isPreferenceAccepted("usage")).toEqual(true);
+      expect(cookies.preference("usage")).toEqual(true);
       expect(cookies.preferences).toHaveProperty("marketing");
-      expect(cookies.isPreferenceAccepted("marketing")).toEqual(true);
+      expect(cookies.preference("marketing")).toEqual(true);
     });
 
     test("Empty preference", async () => {
@@ -770,13 +770,13 @@ describe("Preferences", () => {
       expect(cookies.preferencesCorrectOnInit).toEqual(false);
       expect(cookies.all).toHaveProperty("cookie_preferences");
       expect(cookies.preferences).toHaveProperty("essential");
-      expect(cookies.isPreferenceAccepted("essential")).toEqual(true);
+      expect(cookies.preference("essential")).toEqual(true);
       expect(cookies.preferences).toHaveProperty("settings");
-      expect(cookies.isPreferenceAccepted("settings")).toEqual(false);
+      expect(cookies.preference("settings")).toEqual(false);
       expect(cookies.preferences).toHaveProperty("usage");
-      expect(cookies.isPreferenceAccepted("usage")).toEqual(false);
+      expect(cookies.preference("usage")).toEqual(false);
       expect(cookies.preferences).toHaveProperty("marketing");
-      expect(cookies.isPreferenceAccepted("marketing")).toEqual(false);
+      expect(cookies.preference("marketing")).toEqual(false);
     });
 
     test("Invalid preference", async () => {
@@ -787,13 +787,13 @@ describe("Preferences", () => {
       expect(cookies.preferencesCorrectOnInit).toEqual(false);
       expect(cookies.all).toHaveProperty("cookie_preferences");
       expect(cookies.preferences).toHaveProperty("essential");
-      expect(cookies.isPreferenceAccepted("essential")).toEqual(true);
+      expect(cookies.preference("essential")).toEqual(true);
       expect(cookies.preferences).toHaveProperty("settings");
-      expect(cookies.isPreferenceAccepted("settings")).toEqual(false);
+      expect(cookies.preference("settings")).toEqual(false);
       expect(cookies.preferences).toHaveProperty("usage");
-      expect(cookies.isPreferenceAccepted("usage")).toEqual(false);
+      expect(cookies.preference("usage")).toEqual(false);
       expect(cookies.preferences).toHaveProperty("marketing");
-      expect(cookies.isPreferenceAccepted("marketing")).toEqual(false);
+      expect(cookies.preference("marketing")).toEqual(false);
     });
 
     test("Partial preference", async () => {
@@ -804,13 +804,13 @@ describe("Preferences", () => {
       expect(cookies.preferencesCorrectOnInit).toEqual(false);
       expect(cookies.all).toHaveProperty("cookie_preferences");
       expect(cookies.preferences).toHaveProperty("essential");
-      expect(cookies.isPreferenceAccepted("essential")).toEqual(true);
+      expect(cookies.preference("essential")).toEqual(true);
       expect(cookies.preferences).toHaveProperty("settings");
-      expect(cookies.isPreferenceAccepted("settings")).toEqual(false);
+      expect(cookies.preference("settings")).toEqual(false);
       expect(cookies.preferences).toHaveProperty("usage");
-      expect(cookies.isPreferenceAccepted("usage")).toEqual(true);
+      expect(cookies.preference("usage")).toEqual(true);
       expect(cookies.preferences).toHaveProperty("marketing");
-      expect(cookies.isPreferenceAccepted("marketing")).toEqual(false);
+      expect(cookies.preference("marketing")).toEqual(false);
     });
 
     test("Unknown preference", async () => {
@@ -821,13 +821,13 @@ describe("Preferences", () => {
       expect(cookies.preferencesCorrectOnInit).toEqual(false);
       expect(cookies.all).toHaveProperty("cookie_preferences");
       expect(cookies.preferences).toHaveProperty("essential");
-      expect(cookies.isPreferenceAccepted("essential")).toEqual(true);
+      expect(cookies.preference("essential")).toEqual(true);
       expect(cookies.preferences).toHaveProperty("settings");
-      expect(cookies.isPreferenceAccepted("settings")).toEqual(false);
+      expect(cookies.preference("settings")).toEqual(false);
       expect(cookies.preferences).toHaveProperty("usage");
-      expect(cookies.isPreferenceAccepted("usage")).toEqual(false);
+      expect(cookies.preference("usage")).toEqual(false);
       expect(cookies.preferences).toHaveProperty("marketing");
-      expect(cookies.isPreferenceAccepted("marketing")).toEqual(false);
+      expect(cookies.preference("marketing")).toEqual(false);
     });
   });
 

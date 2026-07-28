@@ -1,4 +1,4 @@
-/* eslint-disable max-lines */
+/* eslint-disable max-lines, no-ternary */
 
 import CookieEventHandler from "./events";
 
@@ -24,6 +24,7 @@ export default class Cookies {
   /** @protected */
   preferencesCorrectOnInit = false;
 
+  /** @protected */
   tnaCookiePreferences = ["usage", "settings", "marketing", "essential"];
 
   /**
@@ -265,12 +266,12 @@ export default class Cookies {
   /**
    * Accept all the cookie preferences.
    */
-  ensableAllPreferences() {
+  enableAllPreferences() {
     const allPreferences = Object.fromEntries(
       Object.keys(this.preferences).map((key) => [key.toLowerCase(), true]),
     );
     this.savePreferences(allPreferences);
-    this.events.trigger("ensableAllPreferences");
+    this.events.trigger("enableAllPreferences");
     this.events.trigger("changePreference", allPreferences);
   }
 
@@ -289,10 +290,7 @@ export default class Cookies {
     this.events.trigger("changePreference", allPreferences);
   }
 
-  /**
-   * Commit preference preferences to the browser.
-   * @param {object} preferences - The preferences to commit.
-   */
+  /** @protected */
   savePreferences(preferences) {
     this.set(this.preferencesKey, JSON.stringify(preferences));
   }
@@ -302,7 +300,7 @@ export default class Cookies {
    * @param {String} preference - The name of the preference.
    * @returns {Boolean}
    */
-  isPreferenceAccepted(preference) {
+  preference(preference) {
     if (Object.hasOwn(this.preferences, preference)) {
       return this.preferences[preference] === true;
     }
