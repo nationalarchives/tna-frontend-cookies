@@ -171,7 +171,7 @@ describe("IIFE", () => {
   test("Singleton", async () => {
     expect(window.TNAFrontendCookies).toBeFalsy();
 
-    const cookies1 = (await import("./src/iife.js")).default;
+    const cookies1 = (await import("./src/iife.js?1")).default;
 
     expect(window.TNAFrontendCookies).not.toBeFalsy();
 
@@ -179,7 +179,7 @@ describe("IIFE", () => {
     cookies1.customProperty = "testValue";
     expect(cookies1).toHaveProperty("customProperty");
 
-    const cookies2 = (await import("./src/iife.js")).default;
+    const cookies2 = (await import("./src/iife.js?2")).default;
 
     expect(window.TNAFrontendCookies).not.toBeFalsy();
 
@@ -187,13 +187,43 @@ describe("IIFE", () => {
     const { preferencesCorrectOnInit2, ...cookies2Properties } = cookies2;
     expect(cookies1Properties).toEqual(cookies2Properties);
     expect(cookies2).toHaveProperty("customProperty");
+
+    cookies2.destroyInstance();
+
+    expect(window.TNAFrontendCookies).toBeFalsy();
+  });
+
+  test("Singleton mixed initialisation", async () => {
+    expect(window.TNAFrontendCookies).toBeFalsy();
+
+    const cookies1 = new Cookies();
+    window.TNAFrontendCookies = cookies1;
+
+    expect(window.TNAFrontendCookies).not.toBeFalsy();
+
+    expect(window.TNAFrontendCookies).not.toHaveProperty("customProperty");
+    window.TNAFrontendCookies.customProperty = "testValue";
+    expect(window.TNAFrontendCookies).toHaveProperty("customProperty");
+
+    const cookies2 = (await import("./src/iife.js?3")).default;
+
+    expect(window.TNAFrontendCookies).not.toBeFalsy();
+    expect(window.TNAFrontendCookies).toHaveProperty("customProperty");
+
+    const { preferencesCorrectOnInit1, ...cookies1Properties } = cookies1;
+    const { preferencesCorrectOnInit2, ...cookies2Properties } = cookies2;
+    expect(cookies1Properties).toEqual(cookies2Properties);
+
+    cookies2.destroyInstance();
+
+    expect(window.TNAFrontendCookies).toBeFalsy();
   });
 
   test("Instance added to window object", async () => {
     expect(window.TNAFrontendCookies).toBeFalsy();
     expect(window.TNAFrontendCookieEvents).toBeFalsy();
 
-    const cookies = (await import("./src/iife.js?2")).default;
+    const cookies = (await import("./src/iife.js?5")).default;
 
     expect(window.TNAFrontendCookies).toBeTruthy();
     expect(window.TNAFrontendCookieEvents).toBeTruthy();
@@ -202,7 +232,7 @@ describe("IIFE", () => {
   test("Destroy instance", async () => {
     expect(window.TNAFrontendCookies).toBeFalsy();
 
-    const cookies = (await import("./src/iife.js?3")).default;
+    const cookies = (await import("./src/iife.js?6")).default;
 
     expect(window.TNAFrontendCookies).toEqual(cookies);
 
@@ -214,7 +244,7 @@ describe("IIFE", () => {
   test("Destroy instance doesn't remove events", async () => {
     expect(window.TNAFrontendCookieEvents).toBeFalsy();
 
-    const cookies = (await import("./src/iife.js?4")).default;
+    const cookies = (await import("./src/iife.js?7")).default;
 
     expect(window.TNAFrontendCookieEvents).not.toBeFalsy();
 
