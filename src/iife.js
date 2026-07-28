@@ -1,22 +1,23 @@
 import Cookies from "./index.js";
 
 class CookiesInstancable extends Cookies {
-  constructor(options) {
+  constructor(windowObject = window) {
+    super();
+    this.windowObject = windowObject;
     if (
-      window.TNAFrontendCookies &&
-      window.TNAFrontendCookies instanceof CookiesInstancable
+      this.windowObject.TNAFrontendCookies &&
+      this.windowObject.TNAFrontendCookies instanceof Cookies
     ) {
+      this.windowObject.TNAFrontendCookies.destroyInstance =
+        this.destroyInstance.bind(this);
       /* eslint-disable-next-line no-constructor-return */
-      return window.TNAFrontendCookies;
+      return this.windowObject.TNAFrontendCookies;
     }
-    super(options);
-    window.TNAFrontendCookies = this;
+    this.windowObject.TNAFrontendCookies = this;
   }
 
   destroyInstance() {
-    if (window.TNAFrontendCookies === this) {
-      window.TNAFrontendCookies = null;
-    }
+    this.windowObject.TNAFrontendCookies = null;
   }
 }
 
