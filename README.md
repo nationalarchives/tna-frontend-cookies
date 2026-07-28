@@ -9,6 +9,9 @@
 
 TNA Frontend Cookies is a reusable cookie library used by [TNA Frontend](https://github.com/nationalarchives/tna-frontend) and [TNA Frontend Analytics](https://github.com/nationalarchives/tna-frontend-analytics).
 
+Read the [documentation on the design system](https://design-system.nationalarchives.gov.uk/get-started/tna-frontend-cookies/).
+
+
 ## Quickstart
 
 ```sh
@@ -30,8 +33,3 @@ npm run lint
 # Apply formatting
 npm run prettier
 ```
-
-## Useful links
-
-- [TNA Frontend Storybook](https://nationalarchives.github.io/tna-frontend/)
-- [National Archives Design System](https://nationalarchives.github.io/design-system/)
