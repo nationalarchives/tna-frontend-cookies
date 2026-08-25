@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased](https://github.com/nationalarchives/tna-frontend-cookies/compare/v0.1.5...HEAD)
 
 ### Added
+
+- Added support for `preferencesSet` when all cookie preferences have been set
+
 ### Changed
 ### Deprecated
 ### Removed

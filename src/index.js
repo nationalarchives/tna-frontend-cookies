@@ -32,7 +32,8 @@ export default class Cookies {
    * @param {String} [options.defaultDomain] - The domain to register the cookie with.
    * @param {String} [options.path] - The domain to register the cookie with.
    * @param {Boolean} [options.secure] - Only set cookie in HTTPS environments.
-   * @param {String} [options.preferencesKey] - The name of the cookie.
+   * @param {String} [options.preferencesKey] - The name of the cookie that stores the user's preferences.
+   * @param {String} [options.preferencesSetKey] - The name of the cookie that dictates whether the user's preferences have been set.
    * @param {Number} [options.defaultAge] - The default age of non-session cookies.
    * @param {Boolean} [options.noInit=false] - Don't initialise a blank cookie preference.
    */
@@ -43,6 +44,7 @@ export default class Cookies {
       defaultPath,
       secure,
       preferencesKey,
+      preferencesSetKey,
       defaultAge,
       noInit = false,
     } = options;
@@ -57,22 +59,21 @@ export default class Cookies {
     this.preferencesKey = preferencesKey
       ? preferencesKey
       : docDataset.tnaCookiesPreferencesKey || "cookie_preferences";
+    this.preferencesSetKey = preferencesSetKey
+      ? preferencesSetKey
+      : docDataset.tnaCookiesPreferencesSetKey || "cookie_preferences_set";
     this.defaultAge = defaultAge
       ? defaultAge
       : parseInt(docDataset.tnaCookiesDefaultAge, 10) ||
         /* eslint-disable-next-line no-magic-numbers */
         365 * 24 * 60 * 60;
     this.events = new CookieEventHandler();
-    this.preferencesCorrectOnInit =
-      Object.keys(this.preferences).length ===
-        this.tnaCookiePreferences.length &&
-      this.tnaCookiePreferences.every(
-        (preference) =>
-          Object.keys(this.preferences).includes(preference) &&
-          typeof this.preferences[preference] === "boolean",
-      );
-    if (!this.preferencesCorrectOnInit && !noInit) {
-      this.init();
+    this.preferencesCorrectOnInit = this.validatePreferences(this.preferences);
+    if (!this.preferencesCorrectOnInit) {
+      this.preferencesSet = false;
+      if (!noInit) {
+        this.init();
+      }
     }
   }
 
@@ -93,6 +94,17 @@ export default class Cookies {
     });
   }
 
+  validatePreferences(preferences) {
+    return (
+      Object.keys(preferences).length === this.tnaCookiePreferences.length &&
+      this.tnaCookiePreferences.every(
+        (preference) =>
+          Object.keys(preferences).includes(preference) &&
+          typeof preferences[preference] === "boolean",
+      )
+    );
+  }
+
   /** @protected */
   /* eslint-disable-next-line class-methods-use-this */
   get all() {
@@ -100,12 +112,11 @@ export default class Cookies {
     document.cookie
       .split("; ")
       .filter((cookie) => cookie.trim() !== "")
+      .filter((cookie) => cookie.includes("="))
       .forEach((cookie) => {
         const parts = cookie.trim().split("=");
-        const [key, value] = parts;
-        if (key) {
-          deserialised[key] = decodeURIComponent(value || "");
-        }
+        const [key, value = ""] = parts;
+        deserialised[key] = decodeURIComponent(value);
       });
     return deserialised;
   }
@@ -201,7 +212,7 @@ export default class Cookies {
    * @param {String} [path=/] - The path to the cookie is registered on.
    */
   delete(key, path = "/", domain = this.defaultDomain) {
-    const options = { maxAge: -1, path, domain: domain || this.defaultDomain };
+    const options = { maxAge: -1, path, domain };
     this.set(key, "", options);
     this.events.trigger("deleteCookie", { key, ...options });
   }
@@ -271,6 +282,7 @@ export default class Cookies {
       Object.keys(this.preferences).map((key) => [key.toLowerCase(), true]),
     );
     this.savePreferences(allPreferences);
+    this.preferencesSet = true;
     this.events.trigger("enableAllPreferences");
     this.events.trigger("changePreference", allPreferences);
   }
@@ -286,6 +298,7 @@ export default class Cookies {
       essential: true,
     };
     this.savePreferences(allPreferences);
+    this.preferencesSet = true;
     this.events.trigger("disableAllPreferences");
     this.events.trigger("changePreference", allPreferences);
   }
@@ -293,6 +306,30 @@ export default class Cookies {
   /** @protected */
   savePreferences(preferences) {
     this.set(this.preferencesKey, JSON.stringify(preferences));
+  }
+
+  /**
+   * Get the status of whether the preferences have been set.
+   * @returns {Boolean}
+   */
+  get preferencesSet() {
+    return this.hasValue(this.preferencesSetKey, "true");
+  }
+
+  /**
+   * Set the status of whether the preferences have been set.
+   * @param {Boolean} value
+   */
+  set preferencesSet(value) {
+    if (
+      value === true &&
+      this.validatePreferences(JSON.parse(this.get(this.preferencesKey)))
+    ) {
+      this.set(this.preferencesSetKey, "true");
+    } else {
+      this.delete(this.preferencesSetKey);
+    }
+    this.events.trigger("preferencesSet");
   }
 
   /**

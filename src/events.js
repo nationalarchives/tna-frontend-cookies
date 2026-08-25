@@ -35,10 +35,7 @@ export default class CookieEventHandler {
    * @param {Function} callback - The callback function to call when the event is triggered.
    */
   on(event, callback) {
-    if (!Object.hasOwn(this.events, event)) {
-      this.events[event] = [];
-    }
-    this.events[event] = [...this.events[event], callback];
+    this.events[event] = [...(this.events[event] || []), callback];
   }
 
   /**
@@ -47,10 +44,10 @@ export default class CookieEventHandler {
    * @param {Function} callback - The callback function to call when the event is triggered.
    */
   once(event, callback) {
-    if (!Object.hasOwn(this.oneTimeEvents, event)) {
-      this.oneTimeEvents[event] = [];
-    }
-    this.oneTimeEvents[event] = [...this.oneTimeEvents[event], callback];
+    this.oneTimeEvents[event] = [
+      ...(this.oneTimeEvents[event] || []),
+      callback,
+    ];
   }
 
   /** @protected */
