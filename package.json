@@ -1,6 +1,6 @@
 {
   "name": "@nationalarchives/cookies",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "A reusable cookie library for The National Archives",
   "homepage": "https://github.com/nationalarchives/tna-frontend-cookies#readme",
   "bugs": {
