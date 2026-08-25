@@ -32,6 +32,18 @@ describe("Basic functions", () => {
     expect(cookies).toHaveProperty("hasValue");
   });
 
+  test("All", async () => {
+    document.cookie = "foo=bar";
+    document.cookie = "alpha=";
+
+    const cookies = new Cookies();
+
+    expect(cookies.all).toHaveProperty("foo");
+    expect(cookies.get("foo")).toEqual("bar");
+    expect(cookies.all).toHaveProperty("alpha");
+    expect(cookies.get("alpha")).toEqual("");
+  });
+
   test("Add", async () => {
     const cookies = new Cookies();
 
@@ -375,6 +387,8 @@ describe("Events", () => {
     cookies.on("disableAllPreferences", mockDisableAllPreferencesCallback);
     const mockChangePreferenceCallback = vi.fn();
     cookies.on("changePreference", mockChangePreferenceCallback);
+    const mockPreferencesSetCallback = vi.fn();
+    cookies.on("preferencesSet", mockPreferencesSetCallback);
 
     const testKey = "foo";
     const testValue = "bar";
@@ -387,14 +401,31 @@ describe("Events", () => {
     cookies.disableAllPreferences();
     cookies.deleteAll();
 
-    expect(mockSetCookieCallback.mock.calls).toHaveLength(8);
-    expect(mockDeleteCookieCallback.mock.calls).toHaveLength(2);
+    expect(mockSetCookieCallback.mock.calls).toHaveLength(11);
+    expect(mockDeleteCookieCallback.mock.calls).toHaveLength(3);
     expect(mockDeleteAllCookiesCallback.mock.calls).toHaveLength(1);
     expect(mockEnablePreferenceCallback.mock.calls).toHaveLength(1);
     expect(mockDisablePreferenceCallback.mock.calls).toHaveLength(1);
     expect(mockEnableAllPreferencesCallback.mock.calls).toHaveLength(1);
     expect(mockDisableAllPreferencesCallback.mock.calls).toHaveLength(1);
     expect(mockChangePreferenceCallback.mock.calls).toHaveLength(7);
+    expect(mockPreferencesSetCallback.mock.calls).toHaveLength(2);
+  });
+
+  test("Non-existent events", async () => {
+    const mockCallback = vi.fn();
+
+    const cookies = new Cookies();
+
+    cookies.on("foobar", mockCallback);
+
+    const testKey = "foo";
+    const testValue = "bar";
+
+    expect(mockCallback.mock.calls).toHaveLength(0);
+
+    cookies.set(testKey, testValue);
+    expect(mockCallback.mock.calls).toHaveLength(0);
   });
 
   test("One-time events", async () => {
@@ -540,6 +571,10 @@ describe("Preferences", () => {
     expect(JSON.parse(cookies.get("cookie_preferences"))).toHaveProperty(
       "marketing",
     );
+
+    expect(cookies.preferencesCorrectOnInit).toEqual(false);
+
+    expect(cookies.preferencesSet).toEqual(false);
   });
 
   test("Get non-existent preference", async () => {
@@ -694,6 +729,8 @@ describe("Preferences", () => {
     const cookies = new Cookies();
     expect(cookies).toHaveProperty("disableAllPreferences");
 
+    expect(cookies.preferencesSet).toEqual(false);
+
     cookies.enableAllPreferences();
     expect(cookies.preferences.essential).toEqual(true);
     expect(cookies.preference("essential")).toEqual(true);
@@ -704,6 +741,8 @@ describe("Preferences", () => {
     expect(cookies.preferences.marketing).toEqual(true);
     expect(cookies.preference("marketing")).toEqual(true);
 
+    expect(cookies.preferencesSet).toEqual(true);
+
     cookies.disableAllPreferences();
     expect(cookies.preferences.essential).toEqual(true);
     expect(cookies.preference("essential")).toEqual(true);
@@ -713,6 +752,8 @@ describe("Preferences", () => {
     expect(cookies.preference("usage")).toEqual(false);
     expect(cookies.preferences.marketing).toEqual(false);
     expect(cookies.preference("marketing")).toEqual(false);
+
+    expect(cookies.preferencesSet).toEqual(true);
   });
 
   test("Protected essential preference", async () => {
@@ -743,6 +784,19 @@ describe("Preferences", () => {
     expect(cookies.preferences.settings).toEqual(true);
   });
 
+  test("Custom preference set key", async () => {
+    const cookies = new Cookies({ preferencesSetKey: ["custom_set"] });
+
+    expect(cookies.all).not.toHaveProperty("cookie_preferences_set");
+    expect(cookies.preferences.settings).toEqual(false);
+    expect(cookies.preferencesSet).toEqual(false);
+
+    cookies.enableAllPreferences();
+    expect(cookies.all).not.toHaveProperty("cookie_preferences_set");
+    expect(cookies.get("custom_set")).toEqual("true");
+    expect(cookies.preferencesSet).toEqual(true);
+  });
+
   describe("With existing cookies", () => {
     test("Valid preference", async () => {
       document.cookie =
@@ -760,6 +814,7 @@ describe("Preferences", () => {
       expect(cookies.preference("usage")).toEqual(true);
       expect(cookies.preferences).toHaveProperty("marketing");
       expect(cookies.preference("marketing")).toEqual(true);
+      expect(cookies.preferencesSet).toEqual(false);
     });
 
     test("Empty preference", async () => {
@@ -777,6 +832,7 @@ describe("Preferences", () => {
       expect(cookies.preference("usage")).toEqual(false);
       expect(cookies.preferences).toHaveProperty("marketing");
       expect(cookies.preference("marketing")).toEqual(false);
+      expect(cookies.preferencesSet).toEqual(false);
     });
 
     test("Invalid preference", async () => {
@@ -794,6 +850,7 @@ describe("Preferences", () => {
       expect(cookies.preference("usage")).toEqual(false);
       expect(cookies.preferences).toHaveProperty("marketing");
       expect(cookies.preference("marketing")).toEqual(false);
+      expect(cookies.preferencesSet).toEqual(false);
     });
 
     test("Partial preference", async () => {
@@ -811,6 +868,7 @@ describe("Preferences", () => {
       expect(cookies.preference("usage")).toEqual(true);
       expect(cookies.preferences).toHaveProperty("marketing");
       expect(cookies.preference("marketing")).toEqual(false);
+      expect(cookies.preferencesSet).toEqual(false);
     });
 
     test("Unknown preference", async () => {
@@ -828,6 +886,37 @@ describe("Preferences", () => {
       expect(cookies.preference("usage")).toEqual(false);
       expect(cookies.preferences).toHaveProperty("marketing");
       expect(cookies.preference("marketing")).toEqual(false);
+      expect(cookies.preferencesSet).toEqual(false);
+    });
+
+    test("Empty preferences set", async () => {
+      document.cookie = "cookie_preferences_set=true";
+
+      const cookies = new Cookies();
+
+      expect(cookies.preferencesCorrectOnInit).toEqual(false);
+      expect(cookies.preferencesSet).toEqual(false);
+    });
+
+    test("Invalid preferences set", async () => {
+      document.cookie = "cookie_preferences=%7B%22foo%22%3A%22bar%22%7D";
+      document.cookie = "cookie_preferences_set=true";
+
+      const cookies = new Cookies();
+
+      expect(cookies.preferencesCorrectOnInit).toEqual(false);
+      expect(cookies.preferencesSet).toEqual(false);
+    });
+
+    test("Valid preferences set", async () => {
+      document.cookie =
+        "cookie_preferences=%7B%22essential%22%3Atrue%2C%22settings%22%3Atrue%2C%22usage%22%3Atrue%2C%22marketing%22%3Atrue%7D";
+      document.cookie = "cookie_preferences_set=true";
+
+      const cookies = new Cookies();
+
+      expect(cookies.preferencesCorrectOnInit).toEqual(true);
+      expect(cookies.preferencesSet).toEqual(true);
     });
   });
 

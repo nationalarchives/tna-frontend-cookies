@@ -11,7 +11,6 @@ TNA Frontend Cookies is a reusable cookie library used by [TNA Frontend](https:/
 
 Read the [documentation on the design system](https://design-system.nationalarchives.gov.uk/get-started/tna-frontend-cookies/).
 
-
 ## Quickstart
 
 ```sh
