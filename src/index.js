@@ -112,12 +112,11 @@ export default class Cookies {
     document.cookie
       .split("; ")
       .filter((cookie) => cookie.trim() !== "")
+      .filter((cookie) => cookie.includes("="))
       .forEach((cookie) => {
         const parts = cookie.trim().split("=");
-        const [key, value] = parts;
-        if (key) {
-          deserialised[key] = decodeURIComponent(value || "");
-        }
+        const [key, value = ""] = parts;
+        deserialised[key] = decodeURIComponent(value);
       });
     return deserialised;
   }
