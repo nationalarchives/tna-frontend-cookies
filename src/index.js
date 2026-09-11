@@ -1,6 +1,6 @@
 /* eslint-disable max-lines, no-ternary */
 
-import CookieEventHandler from "./events";
+import CookieEventHandler from "./events.js";
 
 /**
  * Class to handle cookies.
