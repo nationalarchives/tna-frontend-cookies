@@ -1,3 +1,6 @@
+// Symbol.for uses a global registry shared across script contexts (e.g. separate bundles/iframes), unlike instanceof which relies on the class reference matching.
+const BRAND = Symbol.for("TNAFrontendCookieEventHandler");
+
 /**
  * Class to handle cookie events.
  * @class CookieEventHandler
@@ -10,11 +13,15 @@ export default class CookieEventHandler {
   /** @protected */
   oneTimeEvents = {};
 
+  /** @protected */
+  [BRAND] = true;
+
+  /**
+   * If an instance already exists, return it instead of creating a new one.
+   * @returns {CookieEventHandler} The existing or newly created instance.
+   */
   constructor() {
-    if (
-      window.TNAFrontendCookieEvents &&
-      window.TNAFrontendCookieEvents instanceof CookieEventHandler
-    ) {
+    if (window.TNAFrontendCookieEvents?.[BRAND]) {
       /* eslint-disable-next-line no-constructor-return */
       return window.TNAFrontendCookieEvents;
     }

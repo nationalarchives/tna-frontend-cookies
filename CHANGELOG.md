@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Deprecated
 ### Removed
 ### Fixed
+
+- Fixed `CookieEventHandler` singleton reuse when loaded from multiple script contexts or bundles by using a shared global symbol instead of `instanceof`
+
 ### Security
 
 ## [0.1.6](https://github.com/nationalarchives/tna-frontend-cookies/compare/v0.1.5...v0.1.6) - 2026-08-25

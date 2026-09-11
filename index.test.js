@@ -475,6 +475,55 @@ describe("Events", () => {
   });
 });
 
+describe("CookieEventHandler class", () => {
+  test("Creates a new instance and attaches it to the window", async () => {
+    const CookieEventHandler = (await import("./src/events.js?1")).default;
+
+    expect(window.TNAFrontendCookieEvents).toBeFalsy();
+
+    const instance = new CookieEventHandler();
+
+    expect(window.TNAFrontendCookieEvents).toBe(instance);
+  });
+
+  test("Reuses an existing instance created from a different script context", async () => {
+    // Importing with a different query string forces Vite to evaluate the module again,
+    // producing a distinct class reference - simulating separate script contexts.
+    const CookieEventHandler1 = (await import("./src/events.js?2")).default;
+    const CookieEventHandler2 = (await import("./src/events.js?3")).default;
+
+    expect(CookieEventHandler1).not.toBe(CookieEventHandler2);
+
+    const instance1 = new CookieEventHandler1();
+    expect(window.TNAFrontendCookieEvents).toBe(instance1);
+
+    const instance2 = new CookieEventHandler2();
+
+    // instanceof fails across the two class references, but the constructor should
+    // still recognise and reuse the existing instance.
+    expect(instance1).not.toBeInstanceOf(CookieEventHandler2);
+    expect(instance2).toBe(instance1);
+    expect(window.TNAFrontendCookieEvents).toBe(instance1);
+  });
+
+  test("Shares event listeners between instances reused across script contexts", async () => {
+    const CookieEventHandler1 = (await import("./src/events.js?4")).default;
+    const CookieEventHandler2 = (await import("./src/events.js?5")).default;
+
+    const instance1 = new CookieEventHandler1();
+    const instance2 = new CookieEventHandler2();
+
+    let called = false;
+    instance1.on("testEvent", () => {
+      called = true;
+    });
+
+    instance2.trigger("testEvent");
+
+    expect(called).toEqual(true);
+  });
+});
+
 describe("Initialisation", () => {
   test("With custom properties", async () => {
     const cookies = new Cookies({
