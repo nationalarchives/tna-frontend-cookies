@@ -1,6 +1,6 @@
 {
   "name": "@nationalarchives/cookies",
-  "version": "0.1.6",
+  "version": "0.2.0",
   "description": "A reusable cookie library for The National Archives",
   "homepage": "https://github.com/nationalarchives/tna-frontend-cookies#readme",
   "bugs": {
@@ -12,6 +12,7 @@
   },
   "license": "MIT",
   "author": "Andrew Hosgood <andrew.hosgood@nationalarchives.gov.uk> (https://andrewhosgood.dev)",
+  "type": "module",
   "exports": {
     ".": "./src/index.js",
     "./events": "./src/events.js",
@@ -34,11 +35,11 @@
   },
   "devDependencies": {
     "@nationalarchives/eslint-config": "^0.1.8",
-    "@vitest/browser-playwright": "^4.1.10",
-    "@vitest/coverage-v8": "^4.1.10",
-    "@vitest/ui": "^4.1.10",
+    "@vitest/browser-playwright": "^5.0.0",
+    "@vitest/coverage-v8": "^5.0.0",
+    "@vitest/ui": "^5.0.0",
     "prettier": "^3.9.6",
     "vite": "^8.1.5",
-    "vitest": "^4.1.10"
+    "vitest": "^5.0.0"
   }
 }
