@@ -30,6 +30,7 @@ export default class CookieEventHandler {
 
   /**
    * Clear all event listeners.
+   * @returns {void}
    */
   clearAll() {
     this.events = {};
@@ -40,6 +41,7 @@ export default class CookieEventHandler {
    * Add an event listener.
    * @param {String} event - The event to add a listener for.
    * @param {Function} callback - The callback function to call when the event is triggered.
+   * @returns {void}
    */
   on(event, callback) {
     this.events[event] = [...(this.events[event] || []), callback];
@@ -49,6 +51,7 @@ export default class CookieEventHandler {
    * Add a one-time event listener.
    * @param {String} event - The event to add a listener for.
    * @param {Function} callback - The callback function to call when the event is triggered.
+   * @returns {void}
    */
   once(event, callback) {
     this.oneTimeEvents[event] = [
@@ -57,7 +60,13 @@ export default class CookieEventHandler {
     ];
   }
 
-  /** @protected */
+  /**
+   * Trigger all listeners registered for an event.
+   * @param {String} event - The event to trigger.
+   * @param {*} [data={}] - Data to pass to each listener.
+   * @returns {void}
+   * @protected
+   */
   trigger(event, data = {}) {
     if (Object.hasOwn(this.events, event)) {
       this.events[event].forEach((eventToTrigger) =>
