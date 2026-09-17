@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 ### Changed
+
+- If no domain is set and the `window.hostname` ends with `.nationalarchives.gov.uk` then use that as the domain rather than the full hostname
+
 ### Deprecated
 ### Removed
 ### Fixed
