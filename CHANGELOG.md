@@ -9,9 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 ### Changed
+
+- If no domain is set and the `window.hostname` ends with `.nationalarchives.gov.uk` then use that as the domain rather than the full hostname
+
 ### Deprecated
 ### Removed
 ### Fixed
+
+- Fixed `CookiesInstancable` (used by the IIFE build) singleton reuse when an existing `window.TNAFrontendCookies` instance was created via a different script context or bundle by using a shared global symbol instead of `instanceof`
+
 ### Security
 
 ## [0.2.1](https://github.com/nationalarchives/tna-frontend-cookies/compare/v0.2.0...v0.2.1) - 2026-09-11
