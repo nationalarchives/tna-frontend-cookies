@@ -1,5 +1,5 @@
 import { vi, expect, test, describe, beforeEach, afterEach } from "vitest";
-import Cookies from "./src/index.js";
+import Cookies, { BRAND } from "./src/index.js";
 
 const clearAllCookies = () =>
   document.cookie.split(";").forEach((cookie) => {
@@ -186,19 +186,16 @@ describe("IIFE", () => {
     const cookies1 = (await import("./src/iife.js?1")).default;
 
     expect(window.TNAFrontendCookies).not.toBeFalsy();
-
-    expect(cookies1).not.toHaveProperty("customProperty");
-    cookies1.customProperty = "testValue";
-    expect(cookies1).toHaveProperty("customProperty");
+    expect(cookies1[BRAND]).toBe(true);
 
     const cookies2 = (await import("./src/iife.js?2")).default;
 
     expect(window.TNAFrontendCookies).not.toBeFalsy();
+    expect(cookies2).toBe(cookies1);
 
     const { preferencesCorrectOnInit1, ...cookies1Properties } = cookies1;
     const { preferencesCorrectOnInit2, ...cookies2Properties } = cookies2;
     expect(cookies1Properties).toEqual(cookies2Properties);
-    expect(cookies2).toHaveProperty("customProperty");
 
     cookies2.destroyInstance();
 
@@ -212,15 +209,12 @@ describe("IIFE", () => {
     window.TNAFrontendCookies = cookies1;
 
     expect(window.TNAFrontendCookies).not.toBeFalsy();
-
-    expect(window.TNAFrontendCookies).not.toHaveProperty("customProperty");
-    window.TNAFrontendCookies.customProperty = "testValue";
-    expect(window.TNAFrontendCookies).toHaveProperty("customProperty");
+    expect(window.TNAFrontendCookies[BRAND]).toBe(true);
 
     const cookies2 = (await import("./src/iife.js?3")).default;
 
-    expect(window.TNAFrontendCookies).not.toBeFalsy();
-    expect(window.TNAFrontendCookies).toHaveProperty("customProperty");
+    expect(window.TNAFrontendCookies).toBe(cookies1);
+    expect(cookies2).toBe(cookies1);
 
     const { preferencesCorrectOnInit1, ...cookies1Properties } = cookies1;
     const { preferencesCorrectOnInit2, ...cookies2Properties } = cookies2;
@@ -263,6 +257,40 @@ describe("IIFE", () => {
     cookies.destroyInstance();
 
     expect(window.TNAFrontendCookieEvents).not.toBeFalsy();
+  });
+
+  test("Reuses an existing instance identified only by the brand symbol", async () => {
+    expect(window.TNAFrontendCookies).toBeFalsy();
+
+    // Simulates a Cookies instance from a separate bundle/context that isn't `instanceof` the local class.
+    const fakeInstance = { [BRAND]: true, destroyInstance: vi.fn() };
+    window.TNAFrontendCookies = fakeInstance;
+
+    const cookies = (await import("./src/iife.js?8")).default;
+
+    expect(cookies).toBe(fakeInstance);
+    expect(window.TNAFrontendCookies).toBe(fakeInstance);
+  });
+
+  test("Creates a new instance after the previous one is destroyed", async () => {
+    const cookies1 = (await import("./src/iife.js?9")).default;
+
+    cookies1.destroyInstance();
+    expect(window.TNAFrontendCookies).toBeFalsy();
+
+    const cookies2 = (await import("./src/iife.js?10")).default;
+
+    expect(cookies2).not.toBe(cookies1);
+    expect(window.TNAFrontendCookies).toBe(cookies2);
+  });
+
+  test("A plain Cookies instance is independent of an existing IIFE singleton", async () => {
+    const singleton = (await import("./src/iife.js?11")).default;
+
+    const standalone = new Cookies();
+
+    expect(standalone).not.toBe(singleton);
+    expect(window.TNAFrontendCookies).toBe(singleton);
   });
 });
 
@@ -555,6 +583,18 @@ describe("Initialisation", () => {
     expect(document.cookie).toEqual("");
   });
 
+  test("Defaults to .nationalarchives.gov.uk domain on a nationalarchives.gov.uk host", async () => {
+    expect(
+      Cookies.getDefaultDomainForHostname("www.nationalarchives.gov.uk"),
+    ).toEqual(".nationalarchives.gov.uk");
+    expect(
+      Cookies.getDefaultDomainForHostname("sub.domain.nationalarchives.gov.uk"),
+    ).toEqual(".nationalarchives.gov.uk");
+    expect(Cookies.getDefaultDomainForHostname("localhost")).toEqual(
+      "localhost",
+    );
+  });
+
   test("Properties from HTML attributes", async () => {
     document.documentElement.dataset.tnaCookiesDomain = ".localhost";
     document.documentElement.dataset.tnaCookiesPreferencesKey =
@@ -588,6 +628,16 @@ describe("Initialisation", () => {
     expect(cookies.secure).toEqual(true);
     expect(cookies.preferencesKey).toEqual("cookie_preferences_custom2");
     expect(cookies.defaultAge).toEqual(600);
+  });
+
+  test("Is not a singleton", async () => {
+    const cookies1 = new Cookies({ preferencesKey: "cookie_preferences_1" });
+    const cookies2 = new Cookies({ preferencesKey: "cookie_preferences_2" });
+
+    expect(cookies1).not.toBe(cookies2);
+    expect(cookies1.preferencesKey).toEqual("cookie_preferences_1");
+    expect(cookies2.preferencesKey).toEqual("cookie_preferences_2");
+    expect(window.TNAFrontendCookies).toBeFalsy();
   });
 });
 

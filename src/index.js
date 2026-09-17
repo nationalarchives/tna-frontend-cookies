@@ -2,6 +2,9 @@
 
 import CookieEventHandler from "./events.js";
 
+// Symbol.for uses a global registry shared across script contexts (e.g. separate bundles/iframes), unlike instanceof which relies on the class reference matching.
+export const BRAND = Symbol.for("TNAFrontendCookies");
+
 /**
  * Class to handle cookies.
  * @class Cookies
@@ -9,6 +12,9 @@ import CookieEventHandler from "./events.js";
  * @public
  */
 export default class Cookies {
+  /** @protected */
+  [BRAND] = true;
+
   /** @protected */
   defaultDomain = "";
   /** @protected */
@@ -26,6 +32,18 @@ export default class Cookies {
 
   /** @protected */
   tnaCookiePreferences = ["usage", "settings", "marketing", "essential"];
+
+  /**
+   * Resolve the default cookie domain to use for a given hostname.
+   * @param {String} hostname - The hostname to resolve a domain for.
+   * @returns {String}
+   * @protected
+   */
+  static getDefaultDomainForHostname(hostname) {
+    return hostname.endsWith(".nationalarchives.gov.uk")
+      ? ".nationalarchives.gov.uk"
+      : hostname;
+  }
 
   /**
    * Create a cookie handler.
@@ -51,7 +69,8 @@ export default class Cookies {
     const docDataset = document.documentElement.dataset;
     this.defaultDomain = defaultDomain
       ? defaultDomain
-      : docDataset.tnaCookiesDomain || window.location.hostname;
+      : docDataset.tnaCookiesDomain ||
+        Cookies.getDefaultDomainForHostname(window.location.hostname);
     this.defaultPath = defaultPath
       ? defaultPath
       : docDataset.tnaCookiesPath || "/";
