@@ -20,6 +20,8 @@ export default class Cookies {
   /** @protected */
   defaultPath = "";
   /** @protected */
+  preferencesSetKey = "";
+  /** @protected */
   secure = true;
   /** @protected */
   preferencesKey = "";
@@ -47,8 +49,9 @@ export default class Cookies {
 
   /**
    * Create a cookie handler.
+   * @param {Object} [options={}] - Configuration options.
    * @param {String} [options.defaultDomain] - The domain to register the cookie with.
-   * @param {String} [options.path] - The domain to register the cookie with.
+   * @param {String} [options.defaultPath] - The path to register the cookie with.
    * @param {Boolean} [options.secure] - Only set cookie in HTTPS environments.
    * @param {String} [options.preferencesKey] - The name of the cookie that stores the user's preferences.
    * @param {String} [options.preferencesSetKey] - The name of the cookie that dictates whether the user's preferences have been set.
@@ -96,7 +99,11 @@ export default class Cookies {
     }
   }
 
-  /** @protected */
+  /**
+   * Initialise the cookie preferences with existing valid values.
+   * @returns {void}
+   * @protected
+   */
   init() {
     const existingPreferences = this.preferences;
     const filteredExistingPreferences = Object.fromEntries(
@@ -113,6 +120,12 @@ export default class Cookies {
     });
   }
 
+  /**
+   * Check whether a preferences object contains all supported preferences.
+   * @param {Object} preferences - The preferences to validate.
+   * @returns {Boolean} Whether the preferences are valid.
+   * @protected
+   */
   validatePreferences(preferences) {
     return (
       Object.keys(preferences).length === this.tnaCookiePreferences.length &&
@@ -124,7 +137,11 @@ export default class Cookies {
     );
   }
 
-  /** @protected */
+  /**
+   * Get all cookies as an object keyed by cookie name.
+   * @returns {Object} The deserialised cookies.
+   * @protected
+   */
   /* eslint-disable-next-line class-methods-use-this */
   get all() {
     const deserialised = {};
@@ -140,7 +157,11 @@ export default class Cookies {
     return deserialised;
   }
 
-  /** @protected */
+  /**
+   * Get the stored cookie preferences.
+   * @returns {Object} The stored preferences, or an empty object when none are stored.
+   * @protected
+   */
   get preferences() {
     try {
       return JSON.parse(this.get(this.preferencesKey) || "{}");
@@ -163,7 +184,7 @@ export default class Cookies {
    * Check to see whether a cookie has a particular value.
    * @param {String} key - The cookie name.
    * @param {String|Number|Boolean} value - The value to check against.
-   * @returns
+   * @returns {Boolean} Whether the cookie has the specified value.
    */
   hasValue(key, value) {
     return this.get(key) === value;
@@ -229,6 +250,8 @@ export default class Cookies {
    * Delete a cookie.
    * @param {String} key - The cookie name.
    * @param {String} [path=/] - The path to the cookie is registered on.
+   * @param {String} [domain=this.defaultDomain] - The domain the cookie is registered on.
+   * @returns {void}
    */
   delete(key, path = "/", domain = this.defaultDomain) {
     const options = { maxAge: -1, path, domain };
@@ -238,6 +261,9 @@ export default class Cookies {
 
   /**
    * Delete all cookies.
+   * @param {String} [path=/] - The path to the cookies are registered on.
+   * @param {String} [domain=this.defaultDomain] - The domain the cookies are registered on.
+   * @returns {void}
    */
   deleteAll(path = "/", domain = this.defaultDomain) {
     Object.keys(this.all).forEach((cookie) => {
@@ -250,6 +276,7 @@ export default class Cookies {
   /**
    * Accept a preference.
    * @param {String} preference - The name of the preference.
+   * @returns {void}
    */
   enablePreference(preference) {
     if (!Object.hasOwn(this.preferences, preference)) {
@@ -263,6 +290,7 @@ export default class Cookies {
   /**
    * Reject a preference.
    * @param {String} preference - The name of the preference.
+   * @returns {void}
    */
   disablePreference(preference) {
     if (!Object.hasOwn(this.preferences, preference)) {
@@ -277,6 +305,7 @@ export default class Cookies {
    * Set a preference.
    * @param {String} preference - The name of the preference.
    * @param {Boolean} accepted - Whether the preference is accepted or not.
+   * @returns {void}
    */
   setPreference(preference, accepted) {
     if (!Object.hasOwn(this.preferences, preference)) {
@@ -295,6 +324,7 @@ export default class Cookies {
 
   /**
    * Accept all the cookie preferences.
+   * @returns {void}
    */
   enableAllPreferences() {
     const allPreferences = Object.fromEntries(
@@ -308,6 +338,7 @@ export default class Cookies {
 
   /**
    * Reject all the cookie preferences.
+   * @returns {void}
    */
   disableAllPreferences() {
     const allPreferences = {
@@ -322,7 +353,12 @@ export default class Cookies {
     this.events.trigger("changePreference", allPreferences);
   }
 
-  /** @protected */
+  /**
+   * Save the cookie preferences.
+   * @param {Object} preferences - The preferences to save.
+   * @returns {void}
+   * @protected
+   */
   savePreferences(preferences) {
     this.set(this.preferencesKey, JSON.stringify(preferences));
   }
@@ -337,7 +373,8 @@ export default class Cookies {
 
   /**
    * Set the status of whether the preferences have been set.
-   * @param {Boolean} value
+   * @param {Boolean} value - Whether the preferences have been set.
+   * @returns {void}
    */
   set preferencesSet(value) {
     if (
@@ -354,7 +391,7 @@ export default class Cookies {
   /**
    * Get the acceptance status of a preference.
    * @param {String} preference - The name of the preference.
-   * @returns {Boolean}
+   * @returns {Boolean} Whether the preference is accepted.
    */
   preference(preference) {
     if (Object.hasOwn(this.preferences, preference)) {
@@ -367,6 +404,7 @@ export default class Cookies {
    * Add an event listener.
    * @param {String} event - The event to add a listener for.
    * @param {Function} callback - The callback function to call when the event is triggered.
+   * @returns {void}
    */
   on(event, callback) {
     this.events.on(event, callback);
@@ -376,6 +414,7 @@ export default class Cookies {
    * Add a one-time event listener.
    * @param {String} event - The event to add a listener for.
    * @param {Function} callback - The callback function to call when the event is triggered.
+   * @returns {void}
    */
   once(event, callback) {
     this.events.once(event, callback);

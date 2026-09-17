@@ -1,6 +1,10 @@
 import Cookies, { BRAND } from "./index.js";
 
 class CookiesInstancable extends Cookies {
+  /**
+   * Create or reuse the global cookie handler instance.
+   * @param {Window} [windowObject=window] - The window object to attach the instance to.
+   */
   constructor(windowObject = window) {
     super();
     this.windowObject = windowObject;
@@ -13,6 +17,10 @@ class CookiesInstancable extends Cookies {
     this.windowObject.TNAFrontendCookies = this;
   }
 
+  /**
+   * Remove this instance from the global window object.
+   * @returns {void}
+   */
   destroyInstance() {
     this.windowObject.TNAFrontendCookies = null;
   }
